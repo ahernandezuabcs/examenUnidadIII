@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="es">
+
+<head>
+    <title>Title</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous" />
+
+    <style>
+        body {
+            background: #c9c9c9;
+        }
+
+        #loggin {
+            max-width: 400px;
+            width: 100%;
+            background-color: #f0f0f0;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container mt-5" id="loggin">
+        <h3 class="text-center">Iniciar Sesión</h3>
+        <form id="loginForm">
+            <div class="form-group mb-3">
+                <label for="username">Usuario</label>
+                <input type="text" class="form-control" id="username" placeholder="Ingresa tu usuario" required>
+            </div>
+            <div class="form-group mb-3">
+                <label for="password">Contraseña</label>
+                <input type="password" class="form-control" id="password" placeholder="Ingresa tu contraseña" required>
+            </div>
+            <button type="submit" class="btn btn-primary w-100">Ingresar</button>
+        </form>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"
+        integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r"
+        crossorigin="anonymous"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.min.js"
+        integrity="sha384-BBtl+eGJRgqQAUMxJ7pMwbEyER4l1g+O15P+16Ep7Q9Q+zqX6gSbd85u4mG4QzX+"
+        crossorigin="anonymous">
+    </script>
+
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+
+    <script>
+        const { createApp, ref } = Vue;
+        createApp({
+            setup() {
+                let email = ref('ahernandez_20')
+                let password = ref('Odila231296')
+                let isLogged = ref(false)
+
+                return {
+                    email,
+                    password,
+                    isLogged
+                }
+            },
+            methods: {
+                loggin() {
+                    console.log(this.email)
+                    console.log(this.password)
+
+                    const myHeaders = new Headers();
+                    myHeaders.append("Content-Type", "application/json");
+                    myHeaders.append("Authorization", "Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJhMGMwYWZhNTU1ZWZiNDU4YzQ0MzEzNTA4NmE2ZWFlMSIsIm5iZiI6MTcyODYxNTkwMS4wMDM2MzksInN1YiI6IjY3MDg1ODYyZjE4OTE5ZGQ0YzQ4MmVmMSIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.l6L1Rw9NYORGN9IIE0ytQLzJaaDced3a6b-POSBiS8c");
+
+                    const raw = JSON.stringify({
+                        "username": this.email,
+                        "password": this.password,
+                        "request_token": ""
+                    });
+
+                    const requestOptions = {
+                        method: "POST",
+                        headers: myHeaders,
+                        body: raw,
+                        redirect: "follow"
+                    };
+
+                    this.errorMessage = "";
+                    fetch("https://api.themoviedb.org/3/authentication/token/validate_with_login", requestOptions)
+                        .then(response => response.json())
+                        .then(result => {
+                            console.log("Inicio sesion")
+                            if (result.success) {
+                                this.errorMessage = "";
+                                this.isLogged = true;
+
+
+                                window.location.href = "movies.html";
+                                console.log(result)
+                                localStorage.setItem('isLogged', this.isLogged);
+                                localStorage.setItem('username', this.email);
+
+                            } else {
+                                this.errorMessage = "Email o contraseña incorrectos";
+                            }
+                        })
+                        .catch(error => {
+                            console.error("Error:", error);
+                            this.errorMessage = "Error al cargar los datos del servidor";
+                        });
+                },
+                // logout() {
+                //     localStorage.removeItem('user');
+                //     this.isLogged = false;
+                //     this.email = "";
+                //     this.password = "";
+                // },
+                // addUser() {
+                //     this.editUserData = { email: "", name: "", password: "" };
+                //     this.editUserIndex = null;
+                //     this.showEditModal = true;
+                //     this.$nextTick(() => {
+                //         const modal = new bootstrap.Modal(document.querySelector('.modal'));
+                //         modal.show();
+                //         this.grand_modal = modal
+                //     });
+                // },
+                // deleteUser(index) {
+                //     this.users.splice(index, 1);
+                // },
+                // editUser(index) {
+                //     this.editUserIndex = index;
+                //     this.editUserData = { ...this.users[index] };
+                //     this.showEditModal = true;
+                //     this.$nextTick(() => {
+                //         const modal = new bootstrap.Modal(document.querySelector('.modal'));
+                //         modal.show();
+                //         this.grand_modal = modal
+                //     });
+                // },
+                // saveUser() {
+                //     if (this.editUserIndex === null) {
+
+                //         this.users.push({ ...this.editUserData });
+                //     } else {
+
+                //         this.users[this.editUserIndex] = { ...this.editUserData };
+                //     }
+                //     this.closeEditModal();
+                // },
+                // closeEditModal() {
+                //     this.showEditModal = false;
+                //     this.editUserData = {};
+                //     this.editUserIndex = null;
+                //     this.grand_modal.hide()
+                //     /*this.$nextTick(() => {
+                //         const modal = new bootstrap.Modal(document.querySelector('.modal'));
+                //         modal.hide();
+
+                //     });*/
+                // }
+            },
+            mounted() {
+                console.log("Hola")
+
+
+                let is_log = localStorage.getItem("is_log");
+                let username = localStorage.getItem("username");
+
+                if (is_log != null && username != null) {
+
+                    window.location.href = "movies.html";
+                }
+
+            }
+        }).mount('#vueApp');
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>
+<!--=======
+ <!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Series Populares - TMDb API</title>
+  <link rel="stylesheet" href="Estilos.css">
+</head>
+<body>
+  <header>
+    <h1>Series Populares</h1>
+    <input type="text" id="search" placeholder="Buscar series...">
+  </header>
+
+  <div id="series-container" class="grid"></div>
+
+  <div id="modal" class="modal">
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <div id="serie-detail"></div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html> 
+>>>>>>> b096cc1701267efbcba0b8e80249d0e3c57366e5-->

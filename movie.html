@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Movie</title>
+</head>
+<style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #a8a8a8;
+      color: rgb(139, 139, 139);
+      margin: 0;
+      padding: 20px;
+      text-align: center;
+    }
+    .movie-details {
+      background-color: white;
+      padding: 20px;
+      border-radius: 8px;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    .movie-details img {
+      width: 100%;
+      border-radius: 8px;
+    }
+    .movie-details h2 {
+      margin: 20px 0;
+    }
+    .movie-details p {
+      color: rgb(32, 66, 220);
+    }
+    .stars {
+    display: flex;
+    justify-content: center;
+    margin: 20px 0;
+    }
+
+    .star {
+    font-size: 40px;
+    cursor: pointer;
+    color: #ddd;
+    }
+
+    .star:hover,
+    .star.selected {
+    color: #ff69b4; 
+    }
+
+    .remove-rating {
+      margin-top: 10px;
+      cursor: pointer;
+      color: red;
+      border: none;
+      background: none;
+      font-size: 14px;
+    }
+    .back-button {
+      margin-top: 20px;
+      padding: 10px 20px;
+      background-color: #a9ccf2;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .back-button:hover {
+      background-color: #0056b3;
+    }
+  </style>
+</head>
+<body>
+  <!DOCTYPE html>
+  <html lang="en">
+  <head>
+      <meta charset="UTF-8">
+      <title>Movie Details</title>
+      <link rel="stylesheet" href="main.css">
+  </head>
+  <body>
+      <div id="app">
+          <div v-if="movie" class="movie-details">
+              <img :src="'https://image.tmdb.org/t/p/w500' + movie.poster_path" :alt="movie.title">
+              <h2>{{ movie.title }}</h2>
+              <p>{{ movie.overview }}</p>
+              <p>Rating: {{ movie.vote_average }}</p>
+              <p>Release Date: {{ movie.release_date }}</p>
+              <div class="stars">
+                  <span v-for="n in 5" :key="n"
+                      class="star"
+                      :class="{ selected: n <= userRating }"
+                      @click="rateMovie(n)"
+                      title="Rate">&#9733;</span>
+              </div>
+              <button v-if="userRating" class="remove-rating" @click="removeRating">Delete vote</button>
+              <button class="back-button" @click="goBack">Return to Movies</button>
+              
+              <!-- New Features -->
+              <p>Categories: {{ movie.genres.map(genre => genre.name).join(', ') }}</p>
+              <p v-if="movie.favorite" class="favorite">Favorite: Yes</p>
+              <p v-else class="favorite" @click="addToFavorites">Add to Favorites</p>
+              <p>Cast: {{ cast.map(actor => actor.name).join(', ') }}</p>
+              <p>Keywords: {{ keywords.map(keyword => keyword.name).join(', ') }}</p>
+              <p><a :href="movie.trailer" target="_blank">Watch Trailer</a></p>
+              <h3>Recommendations</h3>
+              <ul>
+                  <li v-for="recommendation in recommendations" :key="recommendation.id">
+                      <a :href="'movie.html?id=' + recommendation.id">{{ recommendation.title }}</a>
+                  </li>
+              </ul>
+          </div>
+      </div>
+  
+      <script src="https://unpkg.com/vue@3"></script>
+      <script>
+          const apiKey = 'cf099e1443bc9a2df637136e1cb405d8';
+          const app = Vue.createApp({
+              data() {
+                  return {
+                      movie: null,
+                      userRating: 0,
+                      cast: [],
+                      keywords: [],
+                      recommendations: []
+                  };
+              },
+              mounted() {
+                  const urlParams = new URLSearchParams(window.location.search);
+                  const movieId = urlParams.get('id');
+                  this.getMovieDetails(movieId);
+                  this.loadRating(movieId);
+                  this.getCast(movieId);
+                  this.getKeywords(movieId);
+                  this.getRecommendations(movieId);
+              },
+              methods: {
+                  async getMovieDetails(id) {
+                      const apiUrl = `https://api.themoviedb.org/3/movie/${id}?api_key=${apiKey}&language=en-US`;
+                      try {
+                          const response = await fetch(apiUrl);
+                          const data = await response.json();
+                          this.movie = data;
+                      } catch (error) {
+                          console.error('Error fetching movie details:', error);
+                      }
+                  },
+                  rateMovie(rating) {
+                      this.userRating = rating;
+                      sessionStorage.setItem(`rating_${this.movie.id}`, rating);
+                  },
+                  removeRating() {
+                      this.userRating = 0;
+                      sessionStorage.removeItem(`rating_${this.movie.id}`);
+                  },
+                  loadRating(id) {
+                      const savedRating = sessionStorage.getItem(`rating_${id}`);
+                      if (savedRating) {
+                          this.userRating = parseInt(savedRating);
+                      }
+                  },
+                  goBack() {
+                      window.location.href = 'movies.html';
+                  },
+                  async getCast(id) {
+                      const apiUrl = `https://api.themoviedb.org/3/movie/${id}/credits?api_key=${apiKey}&language=en-US`;
+                      try {
+                          const response = await fetch(apiUrl);
+                          const data = await response.json();
+                          this.cast = data.cast;
+                      } catch (error) {
+                          console.error('Error fetching cast:', error);
+                      }
+                  },
+                  async getKeywords(id) {
+                      const apiUrl = `https://api.themoviedb.org/3/movie/${id}/keywords?api_key=${apiKey}&language=en-US`;
+                      try {
+                          const response = await fetch(apiUrl);
+                          const data = await response.json();
+                          this.keywords = data.keywords;
+                      } catch (error) {
+                          console.error('Error fetching keywords:', error);
+                      }
+                  },
+                  async getRecommendations(id) {
+                      const apiUrl = `https://api.themoviedb.org/3/movie/${id}/recommendations?api_key=${apiKey}&language=en-US`;
+                      try {
+                          const response = await fetch(apiUrl);
+                          const data = await response.json();
+                          this.recommendations = data.results;
+                      } catch (error) {
+                          console.error('Error fetching recommendations:', error);
+                      }
+                  },
+                  addToFavorites() {
+                      this.movie.favorite = true;
+                      // Aquí podrías añadir más lógica para manejar favoritos de manera persistente
+                  }
+              }
+          });
+          app.mount('#app');
+      </script>
+  </body>
+  </html>
+  
+</body>
+</html>
