@@ -1,0 +1,126 @@
+/* ======= ESTILOS GENERALES ======= */
+body {
+  font-family: Arial, sans-serif; 
+  margin: 0; 
+  padding: 0; 
+  background-color: #f0f0f0; /* Fondo gris claro */
+}
+
+/* ======= ENCABEZADO (HEADER) ======= */
+header {
+  background-color: #444; /* Fondo oscuro */
+  color: white;
+  padding: 20px;
+  text-align: center;
+}
+
+input[type="text"] {
+  width: 80%; 
+  padding: 10px; 
+  margin-top: 10px;
+}
+/* Estilo del selector (filtro) */
+#filter {
+  padding: 10px; /* Espacio interno del selector */
+  margin-top: 10px; /* Espacio por arriba del selector */
+  width: 80%; /* Ancho del selector: ocupa el 80% del contenedor */
+  background-color: white; /* Fondo blanco */
+  border: 1px solid #ccc; /* Borde gris claro */
+  border-radius: 5px; /* Bordes redondeados */
+  color: #444; /* Color del texto */
+  cursor: pointer; /* Cambia el cursor al pasar por encima */
+}
+/* ======= CONTENEDOR DE SERIES ======= */
+.grid {
+  display: grid; 
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); /* Diseño adaptable */
+  gap: 10px;
+  padding: 50px 20px; /* Espacio interno */
+  position: relative;
+}
+
+/* ======= TARJETAS DE SERIES ======= */
+.card {
+  background-color: white; 
+  border-radius: 5px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* Sombra ligera */
+  cursor: pointer;
+  overflow: hidden; 
+  text-align: center;
+
+  position: relative; 
+  top: 10px; 
+  transition: all 0.3s ease-in-out;
+}
+
+/* Efecto al pasar el ratón */
+.card:hover {
+  top: -20px; 
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.3); 
+}
+
+.card img {
+  width: 100%; 
+  height: 300px; 
+  object-fit: cover; /* Asegura que la imagen se ajuste bien */
+}
+
+/* ======= MODAL ======= */
+.modal {
+  display: none; 
+  position: fixed;
+  top: 50%; 
+  left: 50%; 
+  transform: translate(-50%, -50%);
+  display: flex; 
+  justify-content: center; 
+  align-items: center; 
+  width: auto; 
+  height: auto; 
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1); 
+}
+
+/* Contenido del modal */
+.modal-content {
+  background-color: white;
+  padding: 15px;
+  border-radius: 10px;
+  max-width: 400px;
+  width: 80%; 
+  position: relative;
+  overflow: hidden;
+}
+
+.modal-content img {
+  width: 100%; 
+  border-radius: 10px; 
+  margin-top: 10px;
+}
+
+.close {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  font-size: 30px;
+  cursor: pointer;
+}
+
+/* ======= BOTONES DE CATEGORÍAS ======= */
+.category-button {
+  background-color: #4caf50; 
+  color: white;
+  border: none; 
+  border-radius: 5px;
+  padding: 10px 15px;
+  margin: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.category-button:hover {
+  background-color: #45a049; /* Fondo más oscuro al pasar el ratón */
+}
+
+
+  
+  
