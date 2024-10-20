@@ -11,9 +11,15 @@
 
     <style>
         body {
-            background-color: rgba(53, 102, 253, 0.8);
             background-size: cover;
             background-position: center;
+            background-repeat: no-repeat;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0;
+            padding: 0;
         }
 
         .card:hover {
@@ -23,7 +29,7 @@
 
         .carousel-item {
             display: flex;
-            justify-content: space-around;
+            justify-content: flex-start;
             align-items: center;
         }
 
@@ -49,63 +55,123 @@
 
 <body>
     <div id="app">
-        <header></header>
+        <header>
+            <nav class="navbar bg-primary" data-bs-theme="dark">
+                <div class="container-fluid">
+                    <a class="navbar-brand" href="#">Navbar</a>
+                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                        data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
+                        aria-expanded="false" aria-label="Toggle navigation">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+                    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                            <li class="nav-item">
+                                <a class="nav-link active" aria-current="page" href="#">Home</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="#">Link</a>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
+                                    aria-expanded="false">
+                                    Dropdown
+                                </a>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="#">Action</a></li>
+                                    <li><a class="dropdown-item" href="#">Another action</a></li>
+                                    <li>
+                                        <hr class="dropdown-divider">
+                                    </li>
+                                    <li><a class="dropdown-item" href="#">Something else here</a></li>
+                                </ul>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link disabled" aria-disabled="true">Disabled</a>
+                            </li>
+                        </ul>
+                        <form class="d-flex" role="search">
+                            <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search">
+                            <button class="btn btn-outline-success" type="submit">Search</button>
+                        </form>
+                    </div>
+                </div>
+            </nav>
+        </header>
         <main>
             <div class="container">
                 <h1 class="text-white text-center">Movie Background & Genres</h1>
 
-                <!-- Carousel for Action -->
+
                 <div id="carousel-action" class="carousel slide" data-bs-ride="carousel">
                     <h3 class="text-white">Action</h3>
                     <div class="carousel-inner">
-                        <div class="carousel-item active">
-                            <div class="card">
-                                <img src="..." class="card-img-top movie-img" alt="Movie Image">
+
+                        <div class="carousel-item active" v-if="genres.action.length > 0">
+                            <div v-for="movie in genres.action.slice(0, 5)" :key="movie.id" class="card">
+                                <img :src="movie.poster_path ? `${IMAGE_BASE_URL}${movie.poster_path}` : 'fallback-image.jpg'"
+                                    class="card-img-top movie-img" alt="Movie Image">
                                 <div class="card-body text-center">
-                                    <h5 class="card-title">Movie Title</h5>
+                                    <h5 class="card-title">{{ movie.title }}</h5>
                                 </div>
                             </div>
-                            <div class="card">
-                                <img src="..." class="card-img-top movie-img" alt="Movie Image">
+                        </div>
+                        <div class="carousel-item" v-if="genres.action.length > 5">
+                            <div v-for="movie in genres.action.slice(5, 10)" :key="movie.id" class="card">
+                                <img :src="movie.poster_path ? `${IMAGE_BASE_URL}${movie.poster_path}` : 'fallback-image.jpg'"
+                                    class="card-img-top movie-img" alt="Movie Image">
                                 <div class="card-body text-center">
-                                    <h5 class="card-title">Movie Title</h5>
-                                </div>
-                            </div>
-                            <div class="card">
-                                <img src="..." class="card-img-top movie-img" alt="Movie Image">
-                                <div class="card-body text-center">
-                                    <h5 class="card-title">Movie Title</h5>
+                                    <h5 class="card-title">{{ movie.title }}</h5>
                                 </div>
                             </div>
                         </div>
                     </div>
+                    <button class="carousel-control-prev" type="button" data-bs-target="#carousel-action"
+                        data-bs-slide="prev">
+                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden">Previous</span>
+                    </button>
+                    <button class="carousel-control-next" type="button" data-bs-target="#carousel-action"
+                        data-bs-slide="next">
+                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden">Next</span>
+                    </button>
                 </div>
 
-                <!-- Carousel for Comedy -->
+
                 <div id="carousel-comedy" class="carousel slide" data-bs-ride="carousel">
                     <h3 class="text-white">Comedy</h3>
                     <div class="carousel-inner">
-                        <div class="carousel-item active">
-                            <div class="card">
-                                <img src="..." class="card-img-top movie-img" alt="Movie Image">
+
+                        <div class="carousel-item active" v-if="genres.comedy.length > 0">
+                            <div v-for="movie in genres.comedy.slice(0, 5)" :key="movie.id" class="card">
+                                <img :src="movie.poster_path ? `${IMAGE_BASE_URL}${movie.poster_path}` : 'fallback-image.jpg'"
+                                    class="card-img-top movie-img" alt="Movie Image">
                                 <div class="card-body text-center">
-                                    <h5 class="card-title">Movie Title</h5>
+                                    <h5 class="card-title">{{ movie.title }}</h5>
                                 </div>
                             </div>
-                            <div class="card">
-                                <img src="..." class="card-img-top movie-img" alt="Movie Image">
+                        </div>
+                        <div class="carousel-item" v-if="genres.comedy.length > 5">
+                            <div v-for="movie in genres.comedy.slice(5, 10)" :key="movie.id" class="card">
+                                <img :src="movie.poster_path ? `${IMAGE_BASE_URL}${movie.poster_path}` : 'fallback-image.jpg'"
+                                    class="card-img-top movie-img" alt="Movie Image">
                                 <div class="card-body text-center">
-                                    <h5 class="card-title">Movie Title</h5>
-                                </div>
-                            </div>
-                            <div class="card">
-                                <img src="..." class="card-img-top movie-img" alt="Movie Image">
-                                <div class="card-body text-center">
-                                    <h5 class="card-title">Movie Title</h5>
+                                    <h5 class="card-title">{{ movie.title }}</h5>
                                 </div>
                             </div>
                         </div>
                     </div>
+                    <button class="carousel-control-prev" type="button" data-bs-target="#carousel-comedy"
+                        data-bs-slide="prev">
+                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden">Previous</span>
+                    </button>
+                    <button class="carousel-control-next" type="button" data-bs-target="#carousel-comedy"
+                        data-bs-slide="next">
+                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden">Next</span>
+                    </button>
                 </div>
 
             </div>
@@ -122,12 +188,13 @@
         integrity="sha384-BBtl+eGJRgqQAUMxJ7pMwbEyER4l1g+O15P+16Ep7Q9Q+zqX6gSbd85u4mG4QzX+"
         crossorigin="anonymous"></script>
 
-    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+
+    <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
 
     <script>
         const { ref, onMounted } = Vue;
 
-        const API_KEY = 'a0c0afa555efb458c443135086a6eae1';  
+        const API_KEY = 'a0c0afa555efb458c443135086a6eae1';
         const IMAGE_BASE_URL = 'https://image.tmdb.org/t/p/original';
 
         const app = Vue.createApp({
@@ -145,8 +212,12 @@
                         );
                         const data = await response.json();
                         const movie = data.results[0];
-                        backgroundImage.value = `${IMAGE_BASE_URL}${movie.backdrop_path}`;
-                        document.body.style.backgroundImage = `url(${backgroundImage.value})`;
+                        if (movie.backdrop_path) {
+                            backgroundImage.value = `${IMAGE_BASE_URL}${movie.backdrop_path}`;
+                            document.body.style.backgroundImage = `url(${backgroundImage.value})`;
+                        } else {
+                            console.error('No backdrop image found for the movie');
+                        }
                     } catch (error) {
                         console.error('Error fetching the movie data:', error);
                     }
@@ -166,14 +237,15 @@
 
                 onMounted(() => {
                     fetchBackgroundImage();
-                    // Fetch movies for each genre
-                    fetchMoviesByGenre(28, 'action');  // Action genre ID is 28
-                    fetchMoviesByGenre(35, 'comedy');  // Comedy genre ID is 35
+
+                    fetchMoviesByGenre(28, 'action');
+                    fetchMoviesByGenre(35, 'comedy');
                 });
 
                 return {
                     backgroundImage,
-                    genres
+                    genres,
+                    IMAGE_BASE_URL
                 };
             }
         });
