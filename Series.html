@@ -1,32 +1,226 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Series Populares - TMDb API</title>
-  <link rel="stylesheet" href="Estilos.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TV Show Details</title>
+    
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+
+        .movie-container {
+            width: 80%;
+            margin: auto;
+            background-color: white;
+            padding: 20px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .movie-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .poster img {
+            width: 300px;
+        }
+
+        .details {
+            margin-left: 20px;
+        }
+
+        .trailer iframe {
+            width: 100%;
+            height: 400px;
+        }
+
+        .recommendations, .actor-cards {
+            display: flex;
+            flex-wrap: wrap;
+        }
+
+        .recommendation-item, .actor-card {
+            margin: 10px;
+            text-align: center;
+            cursor: pointer;
+        }
+
+        .recommendation-item img, .actor-card img {
+            width: 150px;
+        }
+
+        .star-rating {
+            direction: rtl;
+            font-size: 24px;
+            unicode-bidi: bidi-override;
+            display: inline-block;
+        }
+
+        .star-rating input {
+            display: none;
+        }
+
+        .star-rating label {
+            color: #ccc;
+            cursor: pointer;
+        }
+
+        .star-rating input:checked ~ label,
+        .star-rating label:hover,
+        .star-rating label:hover ~ label {
+            color: gold;
+        }
+
+        .category-button {
+            cursor: pointer;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            margin-right: 5px;
+            border-radius: 5px;
+        }
+    </style>
+
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
 </head>
 <body>
-  <header>
-    <h1>Series Populares</h1>
-    <input type="text" id="search" placeholder="Buscar series...">
-    <select id="filter">
-      <option value="popular">Más populares</option>
-      <option value="top_rated">Mejor valoradas</option>
-      <option value="on_the_air">En emisión</option>
-    </select>
-  </header>
-
-  <div id="series-container" class="grid"></div> <!-- Contenedor para las tarjetas de series -->
-
-  <div id="modal" class="modal">
-    <div class="modal-content">
-      <span class="close">&times;</span> <!-- Botón para cerrar el modal -->
-      <div id="serie-detail"></div> <!-- Detalles de la serie -->
-      <div id="category-buttons" class="category-buttons"></div> <!-- Botones de categoría -->
+    <div id="app">
+        <div class="movie-container" v-if="tvShow">
+            <div class="movie-header">
+                <h1>{{ tvShow.name }}</h1>
+                <button @click="toggleFavorite">{{ isFavorite ? 'Unfavorite' : 'Favorite' }}</button>
+            </div>
+            <div class="movie-content">
+                <div class="poster">
+                    <img :src="getPosterUrl(tvShow.poster_path)" alt="TV Show Poster">
+                </div>
+                <div class="details">
+                    <p><strong>Rating:</strong></p>
+                    <div class="star-rating">
+                        <input type="radio" id="5-stars" value="5" v-model="userRating">
+                        <label for="5-stars">&#9733;</label>
+                        <input type="radio" id="4-stars" value="4" v-model="userRating">
+                        <label for="4-stars">&#9733;</label>
+                        <input type="radio" id="3-stars" value="3" v-model="userRating">
+                        <label for="3-stars">&#9733;</label>
+                        <input type="radio" id="2-stars" value="2" v-model="userRating">
+                        <label for="2-stars">&#9733;</label>
+                        <input type="radio" id="1-star" value="1" v-model="userRating">
+                        <label for="1-star">&#9733;</label>
+                    </div>
+                    <p><strong>Overview:</strong> {{ tvShow.overview }}</p>
+                    <p><strong>First Air Date:</strong> {{ tvShow.first_air_date }}</p>
+                    <p><strong>Categories:</strong></p>
+                    <div>
+                        <button v-for="category in tvShow.genres" :key="category.id" class="category-button" @click="goToCategory(category.id)">
+                            {{ category.name }}
+                        </button>
+                    </div>
+                    <h3>Reparto</h3>
+                    <div class="actor-cards">
+                        <div class="actor-card" v-for="actor in cast" :key="actor.cast_id" @click="goToActor(actor.id)">
+                            <img :src="getProfileUrl(actor.profile_path)" alt="Actor Image">
+                            <p>{{ actor.name }}</p>
+                            <p><em>{{ actor.character }}</em></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <h3>Trailer</h3>
+            <div class="trailer">
+                <iframe :src="getTrailerUrl(trailer)" frameborder="0"></iframe>
+            </div>
+            <h3>Recomendaciones</h3>
+            <div class="recommendations">
+                <div v-for="recommendation in recommendations" :key="recommendation.id" class="recommendation-item" @click="goToTVShow(recommendation.id)">
+                    <h4>{{ recommendation.name }}</h4>
+                    <img :src="getPosterUrl(recommendation.poster_path)" alt="Recommendation Poster">
+                </div>
+            </div>
+        </div>
+        <div v-else>
+            <p>Loading TV show details...</p>
+        </div>
     </div>
-  </div>
 
-  <script src="script.js"></script> <!-- Archivo JavaScript que contiene la lógica -->
+    <script>
+        new Vue({
+            el: '#app',
+            data: {
+                apiKey: 'cf099e1443bc9a2df637136e1cb405d8',
+                tvShowId: '1399', // Game of Thrones ID
+                tvShow: null,
+                cast: [],
+                userRating: null,
+                trailer: null,
+                recommendations: [],
+                isFavorite: false,
+            },
+            methods: {
+                getTVShowDetails() {
+                    fetch(`https://api.themoviedb.org/3/tv/${this.tvShowId}?api_key=${this.apiKey}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            this.tvShow = data;
+                        });
+                },
+                getTVShowCast() {
+                    fetch(`https://api.themoviedb.org/3/tv/${this.tvShowId}/credits?api_key=${this.apiKey}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            this.cast = data.cast;
+                        });
+                },
+                getTrailer() {
+                    fetch(`https://api.themoviedb.org/3/tv/${this.tvShowId}/videos?api_key=${this.apiKey}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            this.trailer = data.results.find(video => video.type === 'Trailer');
+                        });
+                },
+                getRecommendations() {
+                    fetch(`https://api.themoviedb.org/3/tv/${this.tvShowId}/recommendations?api_key=${this.apiKey}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            this.recommendations = data.results;
+                        });
+                },
+                toggleFavorite() {
+                    this.isFavorite = !this.isFavorite;
+                },
+                goToCategory(categoryId) {
+                    window.location.href = `/category.html?id=${categoryId}`;
+                },
+                goToActor(actorId) {
+                    window.location.href = `/actor.html?id=${actorId}`;
+                },
+                goToTVShow(tvShowId) {
+                    window.location.href = `/tvshow.html?id=${tvShowId}`;
+                },
+                getPosterUrl(path) {
+                    return `https://image.tmdb.org/t/p/w500${path}`;
+                },
+                getProfileUrl(path) {
+                    return path ? `https://image.tmdb.org/t/p/w500${path}` : 'https://via.placeholder.com/150';
+                },
+                getTrailerUrl(trailer) {
+                    return `https://www.youtube.com/embed/${trailer.key}`;
+                }
+            },
+            mounted() {
+                this.getTVShowDetails();
+                this.getTVShowCast();
+                this.getTrailer();
+                this.getRecommendations();
+            }
+        });
+    </script>
 </body>
 </html>
