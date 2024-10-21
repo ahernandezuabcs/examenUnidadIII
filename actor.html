@@ -6,44 +6,45 @@
   <title>Detalles del Artista</title>
   <link rel="stylesheet" href="Estilos.css">
 </head>
+
 <body>
   <header>
     <h1>Detalles del Artista</h1>
   </header>
 
-  <div id="detalle-artista" class="contenedor-artista"></div>
+  <div id="artista" class="contenedor-artista"></div>
   
   <h2>Filmografía (Series y Películas)</h2>
   <div id="filmografia" class="grid"></div>
 
   <script>
     const apiKey = 'cf099e1443bc9a2df637136e1cb405d8';
-    const IMAGE_BASE_URL = 'https://image.tmdb.org/t/p/original';
+    const IMG_BASE_URL = 'https://image.tmdb.org/t/p/original';
 
-    function obtenerIdArtista() {
+    function obtenerId() {
       const params = new URLSearchParams(window.location.search);
       return params.get('id');
     }
 
-    let idArtista = obtenerIdArtista();
+    let idArtista = obtenerId();
 
     document.addEventListener('DOMContentLoaded', () => {
       if (idArtista) {
-        obtenerDetallesArtista(idArtista);
+        obtenerArtista(idArtista);
         obtenerFilmografia(idArtista);
-        fetchRandomBackgroundImage();
+        obtenerBgAleatorio();
       } else {
         console.error('ID de actor no proporcionado en la URL');
       }
     });
 
-    async function fetchRandomBackgroundImage() {
+    async function obtenerBgAleatorio() {
       try {
         const response = await fetch(`https://api.themoviedb.org/3/movie/popular?api_key=${apiKey}&language=es-ES&page=1`);
         const data = await response.json();
         const randomIndex = Math.floor(Math.random() * data.results.length);
         const movie = data.results[randomIndex];
-        document.body.style.backgroundImage = `url(${IMAGE_BASE_URL}${movie.backdrop_path})`;
+        document.body.style.backgroundImage = `url(${IMG_BASE_URL}${movie.backdrop_path})`;
         document.body.style.backgroundSize = 'cover';
         document.body.style.backgroundPosition = 'center';
         document.body.style.backgroundRepeat = 'no-repeat';
@@ -52,24 +53,27 @@
       }
     }
 
-    async function obtenerDetallesArtista(id) {
+    async function obtenerArtista(id) {
       const apiUrl = `https://api.themoviedb.org/3/person/${id}?api_key=${apiKey}&language=es-ES`;
       try {
-        const respuesta = await fetch(apiUrl);
-        const datos = await respuesta.json();
-        mostrarDetallesArtista(datos);
+        const response = await fetch(apiUrl);
+        const data = await response.json();
+        mostrarArtista(data);
       } catch (error) {
         console.error('Error al obtener detalles del artista:', error);
       }
     }
 
-    function mostrarDetallesArtista(artista) {
-      const contenedorArtista = document.getElementById('detalle-artista');
+    function mostrarArtista(artista) {
+      const contenedorArtista = document.getElementById('artista');
       contenedorArtista.innerHTML = `
-        <h2>${artista.name}</h2>
-        <p>${artista.biography}</p>
-        <p><strong>Conocido por:</strong> ${artista.known_for_department}</p>
-        <p><strong>Fecha de nacimiento:</strong> ${artista.birthday}</p>
+        <img src="${IMG_BASE_URL}${artista.profile_path}" alt="Foto de ${artista.name}">
+        <div>
+          <h2>${artista.name}</h2>
+          <p>${artista.biography}</p>
+          <p><strong>Conocido por:</strong> ${artista.known_for_department}</p>
+          <p><strong>Fecha de nacimiento:</strong> ${artista.birthday}</p>
+        </div>
       `;
     }
 
@@ -92,7 +96,7 @@
       let htmlFilmografia = '';
 
       series.forEach(serie => {
-        let etiquetasGenero = serie.genre_ids ? serie.genre_ids.map(id => obtenerNombreGenero(id)).join(', ') : '';
+        let etiquetasGenero = serie.genre_ids ? serie.genre_ids.map(id => obtenerGenero(id)).join(', ') : '';
         htmlFilmografia += `
           <div class="tarjeta" onclick="location.href='Series.html?id=${serie.id}'">
             <img src="https://image.tmdb.org/t/p/w500${serie.poster_path}" alt="${serie.name}">
@@ -103,7 +107,7 @@
       });
 
       peliculas.forEach(pelicula => {
-        let etiquetasGenero = pelicula.genre_ids ? pelicula.genre_ids.map(id => obtenerNombreGenero(id)).join(', ') : '';
+        let etiquetasGenero = pelicula.genre_ids ? pelicula.genre_ids.map(id => obtenerGenero(id)).join(', ') : '';
         htmlFilmografia += `
           <div class="tarjeta" onclick="location.href='movie.html?id=${pelicula.id}'">
             <img src="https://image.tmdb.org/t/p/w500${pelicula.poster_path}" alt="${pelicula.title}">
@@ -116,7 +120,7 @@
       document.getElementById('filmografia').innerHTML = htmlFilmografia;
     }
 
-    function obtenerNombreGenero(id) {
+    function obtenerGenero(id) {
       const generos = {
         28: 'Acción',
         12: 'Aventura',
