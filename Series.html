@@ -3,124 +3,88 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TV Show Details</title>
-    
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f4f4f4;
-        }
+    <title>TV Show Catalog</title>
 
-        .movie-container {
-            width: 80%;
-            margin: auto;
-            background-color: white;
-            padding: 20px;
-            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
-        }
-
-        .movie-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .poster img {
-            width: 300px;
-        }
-
-        .details {
-            margin-left: 20px;
-        }
-
-        .trailer iframe {
-            width: 100%;
-            height: 400px;
-        }
-
-        .recommendations, .actor-cards, .seasons {
-            display: flex;
-            flex-wrap: wrap;
-        }
-
-        .recommendation-item, .actor-card, .season-item {
-            margin: 10px;
-            text-align: center;
-            cursor: pointer;
-        }
-
-        .recommendation-item img, .actor-card img, .season-item img {
-            width: 150px;
-            border-radius: 8px;
-        }
-
-        .category-button {
-            cursor: pointer;
-            background-color: #3498db;
-            color: white;
-            border: none;
-            padding: 5px 10px;
-            margin-right: 5px;
-            border-radius: 5px;
-        }
-    </style>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 
     <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
 </head>
 <body>
-    <div id="app">
-        <div class="movie-container" v-if="tvShow">
-            <div class="movie-header">
-                <h1>{{ tvShow.name }}</h1>
-                <button @click="toggleFavorite">{{ isFavorite ? 'Unfavorite' : 'Favorite' }}</button>
+    <div id="app" class="container mt-5">
+        <!-- Mostrar catálogo o detalles de la serie -->
+        <div v-if="!tvShowId" class="row">
+            <h1 class="text-center mb-4">Series</h1>
+            <div v-for="show in popularShows" :key="show.id" class="col-6 col-md-4 col-lg-3 text-center mb-3" 
+                 @click="goToTVShow(show.id)">
+                <img :src="getPosterUrl(show.poster_path)" class="img-fluid rounded mb-2" 
+                     :alt="show.name" @error="setPlaceholderImage($event)">
+                <h5>{{ show.name }}</h5>
             </div>
-            <div class="movie-content">
-                <div class="poster">
-                    <img :src="getPosterUrl(tvShow.poster_path)" alt="TV Show Poster">
+        </div>
+
+        <!-- Mostrar detalles de una serie específica -->
+        <div v-else class="card p-4 shadow-sm">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h1>{{ tvShow.name }}</h1>
+                <button class="btn btn-outline-primary" @click="toggleFavorite">
+                    {{ isFavorite ? 'Unfavorite' : 'Favorite' }}
+                </button>
+            </div>
+
+            <div class="row">
+                <div class="col-md-4">
+                    <img :src="getPosterUrl(tvShow.poster_path)" class="img-fluid rounded" 
+                         :alt="tvShow.name" @error="setPlaceholderImage($event)">
                 </div>
-                <div class="details">
-                    <p><strong>Overview:</strong> {{ tvShow.overview }}</p>
-                    <p><strong>First Air Date:</strong> {{ tvShow.first_air_date }}</p>
+                <div class="col-md-8">
+                    <p><strong>Overview:</strong> {{ tvShow.overview || 'No description available.' }}</p>
+                    <p><strong>First Air Date:</strong> {{ tvShow.first_air_date || 'N/A' }}</p>
                     <p><strong>Categories:</strong></p>
-                    <div>
-                        <button v-for="category in tvShow.genres" :key="category.id" class="category-button" @click="goToCategory(category.id)">
+                    <div class="mb-3">
+                        <button v-for="category in tvShow.genres" :key="category.id" 
+                                class="btn btn-primary me-2 mb-2" @click="goToCategory(category.id)">
                             {{ category.name }}
                         </button>
                     </div>
+
                     <h3>Reparto</h3>
-                    <div class="actor-cards">
-                        <div class="actor-card" v-for="actor in cast" :key="actor.cast_id" @click="goToActor(actor.id)">
-                            <img :src="getProfileUrl(actor.profile_path)" alt="Actor Image">
+                    <div class="row">
+                        <div v-for="actor in cast" :key="actor.cast_id" class="col-6 col-md-4 col-lg-3 text-center mb-3">
+                            <img :src="getProfileUrl(actor.profile_path)" class="img-fluid rounded mb-2" 
+                                 :alt="actor.name" @error="setPlaceholderImage($event)">
                             <p>{{ actor.name }}</p>
                             <p><em>{{ actor.character }}</em></p>
                         </div>
                     </div>
                 </div>
             </div>
-            <h3>Temporadas</h3>
-            <div class="seasons">
-                <div class="season-item" v-for="season in tvShow.seasons" :key="season.id" @click="goToSeason(season.season_number)">
-                    <img :src="getPosterUrl(season.poster_path)" alt="Season Poster">
+
+            <h3 class="mt-4">Temporadas</h3>
+            <div class="row">
+                <div v-for="season in tvShow.seasons" :key="season.id" class="col-6 col-md-4 col-lg-3 text-center mb-3">
+                    <img :src="getPosterUrl(season.poster_path)" class="img-fluid rounded mb-2" 
+                         :alt="season.name" @error="setPlaceholderImage($event)">
                     <p><strong>{{ season.name }}</strong></p>
                     <p>Episodes: {{ season.episode_count }}</p>
                 </div>
             </div>
-            <h3>Trailer</h3>
-            <div class="trailer">
+
+            <h3 class="mt-4">Trailer</h3>
+            <div v-if="trailer" class="ratio ratio-16x9 mb-4">
                 <iframe :src="getTrailerUrl(trailer)" frameborder="0"></iframe>
             </div>
+            <p v-else>No trailer available.</p>
+
             <h3>Recomendaciones</h3>
-            <div class="recommendations">
-                <div v-for="recommendation in recommendations" :key="recommendation.id" class="recommendation-item" @click="goToTVShow(recommendation.id)">
+            <div class="row">
+                <div v-for="recommendation in recommendations" :key="recommendation.id" 
+                     class="col-6 col-md-4 col-lg-3 text-center mb-3" @click="goToTVShow(recommendation.id)">
                     <h4>{{ recommendation.name }}</h4>
-                    <img :src="getPosterUrl(recommendation.poster_path)" alt="Recommendation Poster">
+                    <img :src="getPosterUrl(recommendation.poster_path)" class="img-fluid rounded mb-2" 
+                         :alt="recommendation.name" @error="setPlaceholderImage($event)">
                 </div>
             </div>
-        </div>
-        <div v-else>
-            <p>Loading TV show details...</p>
         </div>
     </div>
 
@@ -129,14 +93,23 @@
             el: '#app',
             data: {
                 apiKey: 'cf099e1443bc9a2df637136e1cb405d8',
-                tvShowId: null, 
+                tvShowId: null,
                 tvShow: null,
+                popularShows: [],  // Series populares
                 cast: [],
                 trailer: null,
                 recommendations: [],
                 isFavorite: false,
             },
             methods: {
+                getPopularShows() {
+                    fetch(`https://api.themoviedb.org/3/tv/popular?api_key=${this.apiKey}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            this.popularShows = data.results;
+                        })
+                        .catch(error => console.error('Error fetching popular shows:', error));
+                },
                 getTVShowDetails() {
                     fetch(`https://api.themoviedb.org/3/tv/${this.tvShowId}?api_key=${this.apiKey}`)
                         .then(response => response.json())
@@ -168,12 +141,8 @@
                 goToTVShow(tvShowId) {
                     window.location.href = `?id=${tvShowId}`;
                 },
-                goToSeason(seasonNumber) {
-                    alert(`Navigating to Season ${seasonNumber}`);
-                    // Aquí puedes redirigir a una vista más detallada por temporada si lo deseas.
-                },
                 getPosterUrl(path) {
-                    return `https://image.tmdb.org/t/p/w500${path}`;
+                    return path ? `https://image.tmdb.org/t/p/w500${path}` : 'https://via.placeholder.com/300x450';
                 },
                 getProfileUrl(path) {
                     return path ? `https://image.tmdb.org/t/p/w500${path}` : 'https://via.placeholder.com/150';
@@ -181,22 +150,31 @@
                 getTrailerUrl(trailer) {
                     return `https://www.youtube.com/embed/${trailer.key}`;
                 },
+                setPlaceholderImage(event) {
+                    event.target.src = 'https://via.placeholder.com/300x450';
+                },
                 toggleFavorite() {
                     this.isFavorite = !this.isFavorite;
                 },
                 getTVShowIdFromURL() {
                     const params = new URLSearchParams(window.location.search);
-                    return params.get('id') || '1399';  // Default to Game of Thrones
+                    return params.get('id');
                 }
             },
             mounted() {
                 this.tvShowId = this.getTVShowIdFromURL();
-                this.getTVShowDetails();
-                this.getTVShowCast();
-                this.getTrailer();
-                this.getRecommendations();
+                if (this.tvShowId) {
+                    this.getTVShowDetails();
+                    this.getTVShowCast();
+                    this.getTrailer();
+                    this.getRecommendations();
+                } else {
+                    this.getPopularShows();
+                }
             }
         });
     </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
