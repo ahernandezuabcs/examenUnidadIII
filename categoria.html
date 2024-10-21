@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Categorias</title>
+  <link rel="stylesheet" href="Estilos.css">
+</head>
+<body>
+  <header>
+    <h1>Categorias</h1>
+    
+    <label for="genero-select">Selecciona un género:</label>
+    <select id="genero-select">
+      <option value="">Todos los géneros</option>
+    </select>
+  </header>
+
+  <div>
+    <h2>Series Populares</h2>
+    <div id="contenedor-series" class="grid"></div>
+
+    <h2>Películas Populares</h2>
+    <div id="contenedor-peliculas" class="grid"></div>
+  </div>
+
+  <script>
+    const apiKey = 'cf099e1443bc9a2df637136e1cb405d8';
+    let series = [];
+    let peliculas = [];
+    let generos = [];
+
+    document.addEventListener('DOMContentLoaded', () => {
+      obtenerGeneros();
+      obtenerSeriesPopulares();
+      obtenerPeliculasPopulares();
+
+      const generoSelect = document.getElementById('genero-select');
+      generoSelect.addEventListener('change', filtrarPorGenero);
+    });
+
+    async function obtenerGeneros() {
+      const apiUrl = `https://api.themoviedb.org/3/genre/movie/list?api_key=${apiKey}&language=es-ES`;
+      try {
+        const respuesta = await fetch(apiUrl);
+        const datos = await respuesta.json();
+        generos = datos.genres;
+        cargarGenerosEnSelect(generos);
+      } catch (error) {
+        console.error('Error al obtener géneros:', error);
+      }
+    }
+
+    function cargarGenerosEnSelect(generos) {
+      const generoSelect = document.getElementById('genero-select');
+      generos.forEach(genero => {
+        const option = document.createElement('option');
+        option.value = genero.id;
+        option.textContent = genero.name;
+        generoSelect.appendChild(option);
+      });
+    }
+
+    async function obtenerSeriesPopulares() {
+      const apiUrl = `https://api.themoviedb.org/3/tv/popular?api_key=${apiKey}&language=es-ES&page=1`;
+      try {
+        const respuesta = await fetch(apiUrl);
+        const datos = await respuesta.json();
+        series = datos.results;
+        mostrarSeries(series);
+      } catch (error) {
+        console.error('Error al obtener series populares:', error);
+      }
+    }
+
+    async function obtenerPeliculasPopulares() {
+      const apiUrl = `https://api.themoviedb.org/3/movie/popular?api_key=${apiKey}&language=es-ES&page=1`;
+      try {
+        const respuesta = await fetch(apiUrl);
+        const datos = await respuesta.json();
+        peliculas = datos.results;
+        mostrarPeliculas(peliculas);
+      } catch (error) {
+        console.error('Error al obtener películas populares:', error);
+      }
+    }
+
+    function mostrarSeries(series) {
+      const contenedorSeries = document.getElementById('contenedor-series');
+      contenedorSeries.innerHTML = '';
+
+      series.forEach(serie => {
+        let etiquetasGenero = '';
+        if (serie.genre_ids) {
+          etiquetasGenero = serie.genre_ids.map(id => obtenerNombreGenero(id)).join(', ');
+        }
+
+        contenedorSeries.innerHTML += `
+          <div class="tarjeta">
+            <img src="https://image.tmdb.org/t/p/w500${serie.poster_path}" alt="${serie.name}">
+            <h3>${serie.name}</h3>
+            <div class="contenedor-genero">${etiquetasGenero}</div>
+          </div>
+        `;
+      });
+    }
+
+    function mostrarPeliculas(peliculas) {
+      const contenedorPeliculas = document.getElementById('contenedor-peliculas');
+      contenedorPeliculas.innerHTML = '';
+
+      peliculas.forEach(pelicula => {
+        let etiquetasGenero = '';
+        if (pelicula.genre_ids) {
+          etiquetasGenero = pelicula.genre_ids.map(id => obtenerNombreGenero(id)).join(', ');
+        }
+
+        contenedorPeliculas.innerHTML += `
+          <div class="tarjeta">
+            <img src="https://image.tmdb.org/t/p/w500${pelicula.poster_path}" alt="${pelicula.title}">
+            <h3>${pelicula.title}</h3>
+            <div class="contenedor-genero">${etiquetasGenero}</div>
+          </div>
+        `;
+      });
+    }
+
+    function obtenerNombreGenero(id) {
+      const generos = {
+        28: 'Acción',
+        12: 'Aventura',
+        16: 'Animación',
+        35: 'Comedia',
+        80: 'Crimen',
+        99: 'Documental',
+        18: 'Drama',
+        10751: 'Familiar',
+        14: 'Fantasía',
+        36: 'Historia',
+        27: 'Terror',
+        10402: 'Música',
+        9648: 'Misterio',
+        10749: 'Romance',
+        878: 'Ciencia ficción',
+        10770: 'Película de TV',
+        53: 'Suspense',
+        10752: 'Bélica',
+        37: 'Western'
+      };
+
+      return generos[id] || 'Desconocido';
+    }
+
+    function filtrarPorGenero() {
+      const generoId = parseInt(document.getElementById('genero-select').value);
+
+      if (!generoId) {
+        mostrarSeries(series);
+        mostrarPeliculas(peliculas);
+        return;
+      }
+
+      const seriesFiltradas = series.filter(serie => serie.genre_ids.includes(generoId));
+      mostrarSeries(seriesFiltradas);
+
+      const peliculasFiltradas = peliculas.filter(pelicula => pelicula.genre_ids.includes(generoId));
+      mostrarPeliculas(peliculasFiltradas);
+    }
+  </script>
+</body>
+</html>
