@@ -28,19 +28,24 @@
         let generos = [];
 
         document.addEventListener('DOMContentLoaded', () => {
-            obtenerGeneros();
-            obtenerSeries();
-            obtenerPeliculas();
+            obtenerGeneros()
+                .then(() => Promise.all([obtenerSeries(), obtenerPeliculas()]))
+                .then(() => {
+                    mostrarSeries(series);
+                    mostrarPeliculas(peliculas);
+                })
+                .catch(error => console.error('Error en la carga inicial:', error));
             fetchRandomBackgroundImage();
         });
 
         async function obtenerGeneros() {
             try {
-                const responsePeliculas = await fetch(`https://api.themoviedb.org/3/genre/movie/list?api_key=${apiKey}&language=es-ES`);
-                const responseSeries = await fetch(`https://api.themoviedb.org/3/genre/tv/list?api_key=${apiKey}&language=es-ES`);
-                const dataPeliculas = await responsePeliculas.json();
-                const dataSeries = await responseSeries.json();
-
+                const [resPeliculas, resSeries] = await Promise.all([
+                    fetch(`https://api.themoviedb.org/3/genre/movie/list?api_key=${apiKey}&language=es-ES`),
+                    fetch(`https://api.themoviedb.org/3/genre/tv/list?api_key=${apiKey}&language=es-ES`)
+                ]);
+                const dataPeliculas = await resPeliculas.json();
+                const dataSeries = await resSeries.json();
                 generos = [...dataPeliculas.genres, ...dataSeries.genres];
                 generarBotones(generos);
             } catch (error) {
@@ -50,6 +55,7 @@
 
         function generarBotones(generos) {
             const btnsGenero = document.getElementById('btns-genero');
+            btnsGenero.innerHTML = '';
             generos.forEach(g => {
                 const btn = document.createElement('button');
                 btn.textContent = g.name;
@@ -75,7 +81,6 @@
                 const res = await fetch(url);
                 const data = await res.json();
                 series = data.results;
-                mostrarSeries(series);
             } catch (error) {
                 console.error('Error al obtener series:', error);
             }
@@ -94,7 +99,6 @@
                     console.error('Error al obtener películas:', error);
                 }
             }
-            mostrarPeliculas(peliculas);
         }
 
         function mostrarSeries(series) {
@@ -102,7 +106,7 @@
             contSeries.innerHTML = '';
 
             series.forEach(s => {
-                let etiquetas = s.genre_ids.map(id => obtenerNombreGenero(id)).join(', ');
+                const etiquetas = s.genre_ids.map(id => obtenerNombreGenero(id)).filter(name => name).join(', ');
 
                 const tarjeta = document.createElement('div');
                 tarjeta.className = 'tarjeta';
@@ -123,7 +127,7 @@
             contPeliculas.innerHTML = '';
 
             peliculas.forEach(p => {
-                let etiquetas = p.genre_ids.map(id => obtenerNombreGenero(id)).join(', ');
+                const etiquetas = p.genre_ids.map(id => obtenerNombreGenero(id)).filter(name => name).join(', ');
 
                 const tarjeta = document.createElement('div');
                 tarjeta.className = 'tarjeta';
@@ -141,15 +145,13 @@
 
         function obtenerNombreGenero(id) {
             const generoEncontrado = generos.find(g => g.id === id);
-            return generoEncontrado ? generoEncontrado.name : 'Desconocido';
+            return generoEncontrado ? generoEncontrado.name : null;
         }
 
         function filtrarPorGenero(event) {
             const generoId = parseInt(event.target.dataset.id);
-
             const seriesFiltradas = series.filter(s => s.genre_ids.includes(generoId));
             mostrarSeries(seriesFiltradas);
-
             const peliculasFiltradas = peliculas.filter(p => p.genre_ids.includes(generoId));
             mostrarPeliculas(peliculasFiltradas);
         }
