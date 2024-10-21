@@ -186,3 +186,13 @@ h2 {
   padding: 15px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
+
+.category-button {
+  cursor: pointer;
+  background-color: #3498db;
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  margin-right: 5px;
+  border-radius: 5px;
+}
