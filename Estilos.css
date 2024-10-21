@@ -196,3 +196,41 @@ h2 {
   margin-right: 5px;
   border-radius: 5px;
 }
+
+header {
+  color: white;
+  text-align: center;
+  padding: 20px;
+  background: linear-gradient(90deg, rgba(0, 0, 0, 0.7), rgba(255, 0, 150, 0.7));
+  border-bottom: 5px solid rgba(255, 255, 255, 0.3);
+  width: 100%;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+  border-radius: 0 0 10px 10px;
+}
+
+h1 {
+  font-size: 2.5rem;
+  margin: 0;
+  text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.7);
+}
+
+#btns-genero {
+  margin-top: 10px;
+}
+
+.category-button {
+  background-color: rgba(255, 255, 255, 0.9);
+  color: #333;
+  border: none;
+  border-radius: 5px;
+  padding: 10px 15px;
+  margin: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s, transform 0.3s;
+}
+
+.category-button:hover {
+  background-color: rgba(255, 0, 150, 0.8);
+  transform: scale(1.05);
+  color: white;
+}

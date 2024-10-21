@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="Estilos.css">
 </head>
 <body>
+
     <header>
         <h1>Categorías</h1>
         <div id="btns-genero"></div>
@@ -30,6 +31,7 @@
             obtenerGeneros();
             obtenerSeries();
             obtenerPeliculas();
+            fetchRandomBackgroundImage();
         });
 
         async function obtenerGeneros() {
@@ -167,6 +169,20 @@
 
             const peliculasFiltradas = peliculas.filter(p => p.genre_ids.includes(generoId));
             mostrarPeliculas(peliculasFiltradas);
+        }
+
+        async function fetchRandomBackgroundImage() {
+            const url = `https://api.themoviedb.org/3/movie/popular?api_key=${apiKey}&language=es-ES&page=1`;
+            try {
+                const response = await fetch(url);
+                const data = await response.json();
+                const randomIndex = Math.floor(Math.random() * data.results.length);
+                const movie = data.results[randomIndex];
+                const backgroundImage = `https://image.tmdb.org/t/p/original${movie.backdrop_path}`;
+                document.body.style.backgroundImage = `url(${backgroundImage})`;
+            } catch (error) {
+                console.error("Error fetching the movie data:", error);
+            }
         }
     </script>
 </body>
