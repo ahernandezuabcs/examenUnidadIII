@@ -3,24 +3,20 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Categorias</title>
+  <title>Categorías</title>
   <link rel="stylesheet" href="Estilos.css">
 </head>
 <body>
   <header>
-    <h1>Categorias</h1>
-    
-    <label for="genero-select">Selecciona un género:</label>
-    <select id="genero-select">
-      <option value="">Todos los géneros</option>
-    </select>
+    <h1>Categorías</h1>
+    <div id="botones-genero"></div>
   </header>
 
   <div>
-    <h2>Series Populares</h2>
+    <h2>Series</h2>
     <div id="contenedor-series" class="grid"></div>
 
-    <h2>Películas Populares</h2>
+    <h2>Películas</h2>
     <div id="contenedor-peliculas" class="grid"></div>
   </div>
 
@@ -33,10 +29,7 @@
     document.addEventListener('DOMContentLoaded', () => {
       obtenerGeneros();
       obtenerSeriesPopulares();
-      obtenerPeliculasPopulares();
-
-      const generoSelect = document.getElementById('genero-select');
-      generoSelect.addEventListener('change', filtrarPorGenero);
+      obtenerTodasLasPeliculas();
     });
 
     async function obtenerGeneros() {
@@ -45,20 +38,29 @@
         const respuesta = await fetch(apiUrl);
         const datos = await respuesta.json();
         generos = datos.genres;
-        cargarGenerosEnSelect(generos);
+        generosBotones(generos);
       } catch (error) {
         console.error('Error al obtener géneros:', error);
       }
     }
 
-    function cargarGenerosEnSelect(generos) {
-      const generoSelect = document.getElementById('genero-select');
+    function generosBotones(generos) {
+      const botonesGenero = document.getElementById('botones-genero');
       generos.forEach(genero => {
-        const option = document.createElement('option');
-        option.value = genero.id;
-        option.textContent = genero.name;
-        generoSelect.appendChild(option);
+        const button = document.createElement('button');
+        button.textContent = genero.name;
+        button.dataset.id = genero.id;
+        button.addEventListener('click', filtrarPorGenero);
+        botonesGenero.appendChild(button);
       });
+      
+      const buttonTodos = document.createElement('button');
+      buttonTodos.textContent = 'Todos los géneros';
+      buttonTodos.addEventListener('click', () => {
+        mostrarSeries(series);
+        mostrarPeliculas(peliculas);
+      });
+      botonesGenero.appendChild(buttonTodos);
     }
 
     async function obtenerSeriesPopulares() {
@@ -73,16 +75,20 @@
       }
     }
 
-    async function obtenerPeliculasPopulares() {
-      const apiUrl = `https://api.themoviedb.org/3/movie/popular?api_key=${apiKey}&language=es-ES&page=1`;
-      try {
-        const respuesta = await fetch(apiUrl);
-        const datos = await respuesta.json();
-        peliculas = datos.results;
-        mostrarPeliculas(peliculas);
-      } catch (error) {
-        console.error('Error al obtener películas populares:', error);
+    async function obtenerTodasLasPeliculas() {
+      peliculas = [];
+      const totalPages = 5;
+      for (let page = 1; page <= totalPages; page++) {
+        const apiUrl = `https://api.themoviedb.org/3/movie/popular?api_key=${apiKey}&language=es-ES&page=${page}`;
+        try {
+          const respuesta = await fetch(apiUrl);
+          const datos = await respuesta.json();
+          peliculas = peliculas.concat(datos.results);
+        } catch (error) {
+          console.error('Error al obtener películas:', error);
+        }
       }
+      mostrarPeliculas(peliculas);
     }
 
     function mostrarSeries(series) {
@@ -151,14 +157,8 @@
       return generos[id] || 'Desconocido';
     }
 
-    function filtrarPorGenero() {
-      const generoId = parseInt(document.getElementById('genero-select').value);
-
-      if (!generoId) {
-        mostrarSeries(series);
-        mostrarPeliculas(peliculas);
-        return;
-      }
+    function filtrarPorGenero(event) {
+      const generoId = parseInt(event.target.dataset.id);
 
       const seriesFiltradas = series.filter(serie => serie.genre_ids.includes(generoId));
       mostrarSeries(seriesFiltradas);
