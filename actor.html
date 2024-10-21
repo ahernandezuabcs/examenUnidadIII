@@ -19,7 +19,6 @@
   <script>
     const apiKey = 'cf099e1443bc9a2df637136e1cb405d8';
     const IMAGE_BASE_URL = 'https://image.tmdb.org/t/p/original';
-    const backgroundImage = document.createElement('div');
 
     function obtenerIdArtista() {
       const params = new URLSearchParams(window.location.search);
@@ -93,13 +92,9 @@
       let htmlFilmografia = '';
 
       series.forEach(serie => {
-        let etiquetasGenero = '';
-        if (serie.genre_ids) {
-          etiquetasGenero = serie.genre_ids.map(id => obtenerNombreGenero(id)).join(', ');
-        }
-
+        let etiquetasGenero = serie.genre_ids ? serie.genre_ids.map(id => obtenerNombreGenero(id)).join(', ') : '';
         htmlFilmografia += `
-          <div class="tarjeta">
+          <div class="tarjeta" onclick="location.href='Series.html?id=${serie.id}'">
             <img src="https://image.tmdb.org/t/p/w500${serie.poster_path}" alt="${serie.name}">
             <h3>${serie.name}</h3>
             <div class="contenedor-genero">${etiquetasGenero}</div>
@@ -108,13 +103,9 @@
       });
 
       peliculas.forEach(pelicula => {
-        let etiquetasGenero = '';
-        if (pelicula.genre_ids) {
-          etiquetasGenero = pelicula.genre_ids.map(id => obtenerNombreGenero(id)).join(', ');
-        }
-
+        let etiquetasGenero = pelicula.genre_ids ? pelicula.genre_ids.map(id => obtenerNombreGenero(id)).join(', ') : '';
         htmlFilmografia += `
-          <div class="tarjeta">
+          <div class="tarjeta" onclick="location.href='movie.html?id=${pelicula.id}'">
             <img src="https://image.tmdb.org/t/p/w500${pelicula.poster_path}" alt="${pelicula.title}">
             <h3>${pelicula.title}</h3>
             <div class="contenedor-genero">${etiquetasGenero}</div>
