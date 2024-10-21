@@ -9,15 +9,15 @@
 <body>
   <header>
     <h1>Categorías</h1>
-    <div id="botones-genero"></div>
+    <div id="btns-genero"></div>
   </header>
 
   <div>
     <h2>Series</h2>
-    <div id="contenedor-series" class="grid"></div>
+    <div id="cont-series" class="grid"></div>
 
     <h2>Películas</h2>
-    <div id="contenedor-peliculas" class="grid"></div>
+    <div id="cont-peliculas" class="grid"></div>
   </div>
 
   <script>
@@ -28,62 +28,62 @@
 
     document.addEventListener('DOMContentLoaded', () => {
       obtenerGeneros();
-      obtenerSeriesPopulares();
-      obtenerTodasLasPeliculas();
+      obtenerSeries();
+      obtenerPeliculas();
     });
 
     async function obtenerGeneros() {
-      const apiUrl = `https://api.themoviedb.org/3/genre/movie/list?api_key=${apiKey}&language=es-ES`;
+      const url = `https://api.themoviedb.org/3/genre/movie/list?api_key=${apiKey}&language=es-ES`;
       try {
-        const respuesta = await fetch(apiUrl);
-        const datos = await respuesta.json();
-        generos = datos.genres;
-        generosBotones(generos);
+        const res = await fetch(url);
+        const data = await res.json();
+        generos = data.genres;
+        generarBotones(generos);
       } catch (error) {
         console.error('Error al obtener géneros:', error);
       }
     }
 
-    function generosBotones(generos) {
-      const botonesGenero = document.getElementById('botones-genero');
-      generos.forEach(genero => {
-        const button = document.createElement('button');
-        button.textContent = genero.name;
-        button.dataset.id = genero.id;
-        button.addEventListener('click', filtrarPorGenero);
-        botonesGenero.appendChild(button);
+    function generarBotones(generos) {
+      const btnsGenero = document.getElementById('btns-genero');
+      generos.forEach(g => {
+        const btn = document.createElement('button');
+        btn.textContent = g.name;
+        btn.dataset.id = g.id;
+        btn.addEventListener('click', filtrarPorGenero);
+        btnsGenero.appendChild(btn);
       });
       
-      const buttonTodos = document.createElement('button');
-      buttonTodos.textContent = 'Todos los géneros';
-      buttonTodos.addEventListener('click', () => {
+      const btnTodos = document.createElement('button');
+      btnTodos.textContent = 'Todos los géneros';
+      btnTodos.addEventListener('click', () => {
         mostrarSeries(series);
         mostrarPeliculas(peliculas);
       });
-      botonesGenero.appendChild(buttonTodos);
+      btnsGenero.appendChild(btnTodos);
     }
 
-    async function obtenerSeriesPopulares() {
-      const apiUrl = `https://api.themoviedb.org/3/tv/popular?api_key=${apiKey}&language=es-ES&page=1`;
+    async function obtenerSeries() {
+      const url = `https://api.themoviedb.org/3/tv/popular?api_key=${apiKey}&language=es-ES&page=1`;
       try {
-        const respuesta = await fetch(apiUrl);
-        const datos = await respuesta.json();
-        series = datos.results;
+        const res = await fetch(url);
+        const data = await res.json();
+        series = data.results;
         mostrarSeries(series);
       } catch (error) {
-        console.error('Error al obtener series populares:', error);
+        console.error('Error al obtener series:', error);
       }
     }
 
-    async function obtenerTodasLasPeliculas() {
+    async function obtenerPeliculas() {
       peliculas = [];
       const totalPages = 5;
       for (let page = 1; page <= totalPages; page++) {
-        const apiUrl = `https://api.themoviedb.org/3/movie/popular?api_key=${apiKey}&language=es-ES&page=${page}`;
+        const url = `https://api.themoviedb.org/3/movie/popular?api_key=${apiKey}&language=es-ES&page=${page}`;
         try {
-          const respuesta = await fetch(apiUrl);
-          const datos = await respuesta.json();
-          peliculas = peliculas.concat(datos.results);
+          const res = await fetch(url);
+          const data = await res.json();
+          peliculas = peliculas.concat(data.results);
         } catch (error) {
           console.error('Error al obtener películas:', error);
         }
@@ -92,40 +92,40 @@
     }
 
     function mostrarSeries(series) {
-      const contenedorSeries = document.getElementById('contenedor-series');
-      contenedorSeries.innerHTML = '';
+      const contSeries = document.getElementById('cont-series');
+      contSeries.innerHTML = '';
 
-      series.forEach(serie => {
-        let etiquetasGenero = '';
-        if (serie.genre_ids) {
-          etiquetasGenero = serie.genre_ids.map(id => obtenerNombreGenero(id)).join(', ');
+      series.forEach(s => {
+        let etiquetas = '';
+        if (s.genre_ids) {
+          etiquetas = s.genre_ids.map(id => obtenerNombreGenero(id)).join(', ');
         }
 
-        contenedorSeries.innerHTML += `
+        contSeries.innerHTML += `
           <div class="tarjeta">
-            <img src="https://image.tmdb.org/t/p/w500${serie.poster_path}" alt="${serie.name}">
-            <h3>${serie.name}</h3>
-            <div class="contenedor-genero">${etiquetasGenero}</div>
+            <img src="https://image.tmdb.org/t/p/w500${s.poster_path}" alt="${s.name}">
+            <h3>${s.name}</h3>
+            <div class="contenedor-genero">${etiquetas}</div>
           </div>
         `;
       });
     }
 
     function mostrarPeliculas(peliculas) {
-      const contenedorPeliculas = document.getElementById('contenedor-peliculas');
-      contenedorPeliculas.innerHTML = '';
+      const contPeliculas = document.getElementById('cont-peliculas');
+      contPeliculas.innerHTML = '';
 
-      peliculas.forEach(pelicula => {
-        let etiquetasGenero = '';
-        if (pelicula.genre_ids) {
-          etiquetasGenero = pelicula.genre_ids.map(id => obtenerNombreGenero(id)).join(', ');
+      peliculas.forEach(p => {
+        let etiquetas = '';
+        if (p.genre_ids) {
+          etiquetas = p.genre_ids.map(id => obtenerNombreGenero(id)).join(', ');
         }
 
-        contenedorPeliculas.innerHTML += `
+        contPeliculas.innerHTML += `
           <div class="tarjeta">
-            <img src="https://image.tmdb.org/t/p/w500${pelicula.poster_path}" alt="${pelicula.title}">
-            <h3>${pelicula.title}</h3>
-            <div class="contenedor-genero">${etiquetasGenero}</div>
+            <img src="https://image.tmdb.org/t/p/w500${p.poster_path}" alt="${p.title}">
+            <h3>${p.title}</h3>
+            <div class="contenedor-genero">${etiquetas}</div>
           </div>
         `;
       });
@@ -160,10 +160,10 @@
     function filtrarPorGenero(event) {
       const generoId = parseInt(event.target.dataset.id);
 
-      const seriesFiltradas = series.filter(serie => serie.genre_ids.includes(generoId));
+      const seriesFiltradas = series.filter(s => s.genre_ids.includes(generoId));
       mostrarSeries(seriesFiltradas);
 
-      const peliculasFiltradas = peliculas.filter(pelicula => pelicula.genre_ids.includes(generoId));
+      const peliculasFiltradas = peliculas.filter(p => p.genre_ids.includes(generoId));
       mostrarPeliculas(peliculasFiltradas);
     }
   </script>
