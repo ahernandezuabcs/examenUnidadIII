@@ -17,9 +17,10 @@
   <div id="filmografia" class="grid"></div>
 
   <script>
-
     const apiKey = 'cf099e1443bc9a2df637136e1cb405d8';
-    
+    const IMAGE_BASE_URL = 'https://image.tmdb.org/t/p/original';
+    const backgroundImage = document.createElement('div');
+
     function obtenerIdArtista() {
       const params = new URLSearchParams(window.location.search);
       return params.get('id');
@@ -31,89 +32,101 @@
       if (idArtista) {
         obtenerDetallesArtista(idArtista);
         obtenerFilmografia(idArtista);
+        fetchRandomBackgroundImage();
       } else {
         console.error('ID de actor no proporcionado en la URL');
       }
     });
-    document.addEventListener('DOMContentLoaded', () => {
-    obtenerDetallesArtista(idArtista);
-    obtenerFilmografia(idArtista);
-    });
+
+    async function fetchRandomBackgroundImage() {
+      try {
+        const response = await fetch(`https://api.themoviedb.org/3/movie/popular?api_key=${apiKey}&language=es-ES&page=1`);
+        const data = await response.json();
+        const randomIndex = Math.floor(Math.random() * data.results.length);
+        const movie = data.results[randomIndex];
+        document.body.style.backgroundImage = `url(${IMAGE_BASE_URL}${movie.backdrop_path})`;
+        document.body.style.backgroundSize = 'cover';
+        document.body.style.backgroundPosition = 'center';
+        document.body.style.backgroundRepeat = 'no-repeat';
+      } catch (error) {
+        console.error("Error fetching the movie data:", error);
+      }
+    }
 
     async function obtenerDetallesArtista(id) {
-    const apiUrl = `https://api.themoviedb.org/3/person/${id}?api_key=${apiKey}&language=es-ES`;
-    try {
+      const apiUrl = `https://api.themoviedb.org/3/person/${id}?api_key=${apiKey}&language=es-ES`;
+      try {
         const respuesta = await fetch(apiUrl);
         const datos = await respuesta.json();
         mostrarDetallesArtista(datos);
-    } catch (error) {
+      } catch (error) {
         console.error('Error al obtener detalles del artista:', error);
-    }
+      }
     }
 
     function mostrarDetallesArtista(artista) {
-    const contenedorArtista = document.getElementById('detalle-artista');
-    contenedorArtista.innerHTML = `
+      const contenedorArtista = document.getElementById('detalle-artista');
+      contenedorArtista.innerHTML = `
         <h2>${artista.name}</h2>
         <p>${artista.biography}</p>
         <p><strong>Conocido por:</strong> ${artista.known_for_department}</p>
         <p><strong>Fecha de nacimiento:</strong> ${artista.birthday}</p>
-    `;
+      `;
     }
 
     async function obtenerFilmografia(id) {
-    const apiUrlSeries = `https://api.themoviedb.org/3/person/${id}/tv_credits?api_key=${apiKey}&language=es-ES`;
-    const apiUrlPeliculas = `https://api.themoviedb.org/3/person/${id}/movie_credits?api_key=${apiKey}&language=es-ES`;
+      const apiUrlSeries = `https://api.themoviedb.org/3/person/${id}/tv_credits?api_key=${apiKey}&language=es-ES`;
+      const apiUrlPeliculas = `https://api.themoviedb.org/3/person/${id}/movie_credits?api_key=${apiKey}&language=es-ES`;
 
-    try {
+      try {
         const [resSeries, resPeliculas] = await Promise.all([fetch(apiUrlSeries), fetch(apiUrlPeliculas)]);
         const series = await resSeries.json();
         const peliculas = await resPeliculas.json();
 
         mostrarFilmografia(series.cast, peliculas.cast);
-    } catch (error) {
+      } catch (error) {
         console.error('Error al obtener filmografía:', error);
-    }
+      }
     }
 
     function mostrarFilmografia(series, peliculas) {
-    let htmlFilmografia = '';
+      let htmlFilmografia = '';
 
-    series.forEach(serie => {
+      series.forEach(serie => {
         let etiquetasGenero = '';
         if (serie.genre_ids) {
-        etiquetasGenero = serie.genre_ids.map(id => obtenerNombreGenero(id)).join(', ');
+          etiquetasGenero = serie.genre_ids.map(id => obtenerNombreGenero(id)).join(', ');
         }
 
         htmlFilmografia += `
-        <div class="tarjeta">
+          <div class="tarjeta">
             <img src="https://image.tmdb.org/t/p/w500${serie.poster_path}" alt="${serie.name}">
             <h3>${serie.name}</h3>
             <div class="contenedor-genero">${etiquetasGenero}</div>
-        </div>
+          </div>
         `;
-    });
+      });
 
-    peliculas.forEach(pelicula => {
+      peliculas.forEach(pelicula => {
         let etiquetasGenero = '';
         if (pelicula.genre_ids) {
-        etiquetasGenero = pelicula.genre_ids.map(id => obtenerNombreGenero(id)).join(', ');
+          etiquetasGenero = pelicula.genre_ids.map(id => obtenerNombreGenero(id)).join(', ');
         }
 
         htmlFilmografia += `
-        <div class="tarjeta">
+          <div class="tarjeta">
             <img src="https://image.tmdb.org/t/p/w500${pelicula.poster_path}" alt="${pelicula.title}">
             <h3>${pelicula.title}</h3>
             <div class="contenedor-genero">${etiquetasGenero}</div>
-        </div>
+          </div>
         `;
-    });
+      });
 
-    document.getElementById('filmografia').innerHTML = htmlFilmografia;
+      document.getElementById('filmografia').innerHTML = htmlFilmografia;
     }
 
     function obtenerNombreGenero(id) {
-    const generos = {
+      const generos = {
         28: 'Acción',
         12: 'Aventura',
         16: 'Animación',
@@ -133,11 +146,10 @@
         53: 'Suspense',
         10752: 'Bélica',
         37: 'Western'
-    };
+      };
 
-    return generos[id] || 'Desconocido';
+      return generos[id] || 'Desconocido';
     }
-
   </script>
 </body>
 </html>
