@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TV Show Catalog</title>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
+    <style>
+        .star {
+            font-size: 1.5rem;
+            color: gold;
+            cursor: pointer;
+        }
+        .star-grey {
+            color: lightgrey;
+        }
+    </style>
+</head>
+<body>
+    <div id="app" class="container mt-5">
+        <!-- Mostrar catálogo o detalles de la serie -->
+        <div v-if="!showId" class="row">
+            <h1 class="text-center mb-4">TV Shows</h1>
+            <div v-for="show in popularShows" :key="show.id" class="col-6 col-md-4 col-lg-3 text-center mb-3" 
+                 @click="goToShow(show.id)">
+                <img :src="getPosterUrl(show.poster_path)" class="img-fluid rounded mb-2" 
+                     :alt="show.name" @error="setPlaceholderImage($event)">
+                <h5>{{ show.name }}</h5>
+                <p>Rating: {{ show.vote_average.toFixed(1) }} / 10</p>
+                <div class="d-flex justify-content-center">
+                    <span v-for="star in 5" :key="star" class="star" :class="{'star-grey': show.vote_average / 2 < star}">
+                        ★
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mostrar detalles de una serie específica -->
+        <div v-else class="card p-4 shadow-sm">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h1>{{ show.name }}</h1>
+                <button class="btn btn-outline-primary" @click="toggleFavorite">
+                    {{ isFavorite ? 'Unfavorite' : 'Favorite' }}
+                </button>
+            </div>
+
+            <div class="row">
+                <div class="col-md-4">
+                    <img :src="getPosterUrl(show.poster_path)" class="img-fluid rounded" 
+                         :alt="show.name" @error="setPlaceholderImage($event)">
+                </div>
+                <div class="col-md-8">
+                    <p><strong>Overview:</strong> {{ show.overview || 'No description available.' }}</p>
+                    <p><strong>First Air Date:</strong> {{ show.first_air_date || 'N/A' }}</p>
+                    <p><strong>Categories:</strong></p>
+                    <div class="mb-3">
+                        <button v-for="category in show.genres" :key="category.id" 
+                                class="btn btn-primary me-2 mb-2" @click="goToCategory(category.id)">
+                            {{ category.name }}
+                        </button>
+                    </div>
+
+                    <h3>TV Show Rating</h3>
+                    <div class="d-flex align-items-center mb-3">
+                        <p class="mb-0 me-2">Average Rating: {{ show.vote_average.toFixed(1) }} / 10</p>
+                        <div class="d-flex">
+                            <span v-for="star in 5" :key="star" class="star" :class="{'star-grey': show.vote_average / 2 < star}">
+                                ★
+                            </span>
+                        </div>
+                    </div>
+
+                    <h3>Your Rating</h3>
+                    <div class="d-flex mb-4">
+                        <span v-for="star in 5" :key="star" class="star" 
+                              :class="{'star-grey': userRating < star}" @click="rateShow(star)">
+                            ★
+                        </span>
+                    </div>
+
+                    <h3>Reparto</h3>
+                    <div class="row">
+                        <div v-for="actor in cast" :key="actor.cast_id" class="col-6 col-md-4 col-lg-3 text-center mb-3">
+                            <img :src="getProfileUrl(actor.profile_path)" class="img-fluid rounded mb-2" 
+                                 :alt="actor.name" @error="setPlaceholderImage($event)" 
+                                 @click="showActorDetails(actor)">
+                            <p>{{ actor.name }}</p>
+                            <p><em>{{ actor.character }}</em></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <h3 class="mt-4">Trailer</h3>
+            <div v-if="trailer" class="ratio ratio-16x9 mb-4">
+                <iframe :src="getTrailerUrl(trailer)" frameborder="0" allowfullscreen></iframe>
+            </div>
+            <p v-else>No trailer available.</p>
+
+            <h3>Recomendaciones</h3>
+            <div class="row">
+                <div v-for="recommendation in recommendations" :key="recommendation.id" 
+                     class="col-6 col-md-4 col-lg-3 text-center mb-3" @click="goToShow(recommendation.id)">
+                    <h4>{{ recommendation.name }}</h4>
+                    <img :src="getPosterUrl(recommendation.poster_path)" class="img-fluid rounded mb-2" 
+                         :alt="recommendation.name" @error="setPlaceholderImage($event)">
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal para mostrar información del actor -->
+        <div class="modal fade" id="actorModal" tabindex="-1" aria-labelledby="actorModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="actorModalLabel">{{ selectedActor ? selectedActor.name : '' }}</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <img :src="getProfileUrl(selectedActor ? selectedActor.profile_path : '')" class="img-fluid rounded" 
+                                     :alt="selectedActor ? selectedActor.name : ''" @error="setPlaceholderImage($event)">
+                            </div>
+                            <div class="col-md-8">
+                                <p><strong>Biography:</strong> {{ selectedActor ? selectedActor.biography : 'No biography available.' }}</p>
+                                <p><strong>Birthday:</strong> {{ selectedActor ? selectedActor.birthday : 'N/A' }}</p>
+                                <p><strong>Place of Birth:</strong> {{ selectedActor ? selectedActor.place_of_birth : 'N/A' }}</p>
+                                <h5>TV Shows:</h5>
+                                <ul>
+                                    <li v-for="show in selectedActorShows" :key="show.id">
+                                        {{ show.name }} ({{ show.first_air_date.split('-')[0] }})
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        new Vue({
+            el: '#app',
+            data: {
+                apiKey: 'cf099e1443bc9a2df637136e1cb405d8',
+                showId: null,
+                show: null,
+                popularShows: [],  // Series populares
+                cast: [],
+                trailer: null,
+                recommendations: [],
+                isFavorite: false,
+                userRating: 0,  // Calificación del usuario
+                selectedActor: null,
+                selectedActorShows: [],  // Series del actor seleccionado
+            },
+            methods: {
+                getPopularShows() {
+                    fetch(`https://api.themoviedb.org/3/tv/popular?api_key=${this.apiKey}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            this.popularShows = data.results;
+                        })
+                        .catch(error => console.error('Error fetching popular shows:', error));
+                },
+                getShowDetails() {
+                    fetch(`https://api.themoviedb.org/3/tv/${this.showId}?api_key=${this.apiKey}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            this.show = data;
+                            this.userRating = localStorage.getItem(`rating_${this.showId}`) || 0;
+                        });
+                },
+                getShowCast() {
+                    fetch(`https://api.themoviedb.org/3/tv/${this.showId}/credits?api_key=${this.apiKey}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            this.cast = data.cast;
+                        });
+                },
+                getTrailer() {
+                    fetch(`https://api.themoviedb.org/3/tv/${this.showId}/videos?api_key=${this.apiKey}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            this.trailer = data.results.find(video => video.type === 'Trailer');
+                        });
+                },
+                getRecommendations() {
+                    fetch(`https://api.themoviedb.org/3/tv/${this.showId}/recommendations?api_key=${this.apiKey}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            this.recommendations = data.results;
+                        });
+                },
+                showActorDetails(actor) {
+                    this.selectedActor = actor;
+                    this.getActorShows(actor.id);  // Obtener series del actor
+                    const modal = new bootstrap.Modal(document.getElementById('actorModal'));
+                    modal.show();  // Mostrar el modal
+                },
+                getActorShows(actorId) {
+                    fetch(`https://api.themoviedb.org/3/person/${actorId}/tv_credits?api_key=${this.apiKey}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            this.selectedActorShows = data.cast;
+                        });
+                },
+                goToShow(showId) {
+                    window.location.href = `?id=${showId}`;
+                },
+                getPosterUrl(path) {
+                    return path ? `https://image.tmdb.org/t/p/w500${path}` : 'https://via.placeholder.com/300x450';
+                },
+                getProfileUrl(path) {
+                    return path ? `https://image.tmdb.org/t/p/w500${path}` : 'https://via.placeholder.com/150';
+                },
+                getTrailerUrl(trailer) {
+                    return `https://www.youtube.com/embed/${trailer.key}`;
+                },
+                setPlaceholderImage(event) {
+                    event.target.src = 'https://via.placeholder.com/300x450';
+                },
+                toggleFavorite() {
+                    this.isFavorite = !this.isFavorite;
+                },
+                rateShow(star) {
+                    this.userRating = star;
+                    localStorage.setItem(`rating_${this.showId}`, star);
+                },
+                getShowIdFromURL() {
+                    const params = new URLSearchParams(window.location.search);
+                    return params.get('id');
+                }
+            },
+            mounted() {
+                this.showId = this.getShowIdFromURL();
+                if (this.showId) {
+                    this.getShowDetails();
+                    this.getShowCast();
+                    this.getTrailer();
+                    this.getRecommendations();
+                } else {
+                    this.getPopularShows();
+                }
+            }
+        });
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
