@@ -40,41 +40,20 @@
             height: 400px;
         }
 
-        .recommendations, .actor-cards {
+        .recommendations, .actor-cards, .seasons {
             display: flex;
             flex-wrap: wrap;
         }
 
-        .recommendation-item, .actor-card {
+        .recommendation-item, .actor-card, .season-item {
             margin: 10px;
             text-align: center;
             cursor: pointer;
         }
 
-        .recommendation-item img, .actor-card img {
+        .recommendation-item img, .actor-card img, .season-item img {
             width: 150px;
-        }
-
-        .star-rating {
-            direction: rtl;
-            font-size: 24px;
-            unicode-bidi: bidi-override;
-            display: inline-block;
-        }
-
-        .star-rating input {
-            display: none;
-        }
-
-        .star-rating label {
-            color: #ccc;
-            cursor: pointer;
-        }
-
-        .star-rating input:checked ~ label,
-        .star-rating label:hover,
-        .star-rating label:hover ~ label {
-            color: gold;
+            border-radius: 8px;
         }
 
         .category-button {
@@ -102,19 +81,6 @@
                     <img :src="getPosterUrl(tvShow.poster_path)" alt="TV Show Poster">
                 </div>
                 <div class="details">
-                    <p><strong>Rating:</strong></p>
-                    <div class="star-rating">
-                        <input type="radio" id="5-stars" value="5" v-model="userRating">
-                        <label for="5-stars">&#9733;</label>
-                        <input type="radio" id="4-stars" value="4" v-model="userRating">
-                        <label for="4-stars">&#9733;</label>
-                        <input type="radio" id="3-stars" value="3" v-model="userRating">
-                        <label for="3-stars">&#9733;</label>
-                        <input type="radio" id="2-stars" value="2" v-model="userRating">
-                        <label for="2-stars">&#9733;</label>
-                        <input type="radio" id="1-star" value="1" v-model="userRating">
-                        <label for="1-star">&#9733;</label>
-                    </div>
                     <p><strong>Overview:</strong> {{ tvShow.overview }}</p>
                     <p><strong>First Air Date:</strong> {{ tvShow.first_air_date }}</p>
                     <p><strong>Categories:</strong></p>
@@ -131,6 +97,14 @@
                             <p><em>{{ actor.character }}</em></p>
                         </div>
                     </div>
+                </div>
+            </div>
+            <h3>Temporadas</h3>
+            <div class="seasons">
+                <div class="season-item" v-for="season in tvShow.seasons" :key="season.id" @click="goToSeason(season.season_number)">
+                    <img :src="getPosterUrl(season.poster_path)" alt="Season Poster">
+                    <p><strong>{{ season.name }}</strong></p>
+                    <p>Episodes: {{ season.episode_count }}</p>
                 </div>
             </div>
             <h3>Trailer</h3>
@@ -155,10 +129,9 @@
             el: '#app',
             data: {
                 apiKey: 'cf099e1443bc9a2df637136e1cb405d8',
-                tvShowId: '1399', // Game of Thrones ID
+                tvShowId: null, 
                 tvShow: null,
                 cast: [],
-                userRating: null,
                 trailer: null,
                 recommendations: [],
                 isFavorite: false,
@@ -192,17 +165,12 @@
                             this.recommendations = data.results;
                         });
                 },
-                toggleFavorite() {
-                    this.isFavorite = !this.isFavorite;
-                },
-                goToCategory(categoryId) {
-                    window.location.href = `/category.html?id=${categoryId}`;
-                },
-                goToActor(actorId) {
-                    window.location.href = `/actor.html?id=${actorId}`;
-                },
                 goToTVShow(tvShowId) {
-                    window.location.href = `/tvshow.html?id=${tvShowId}`;
+                    window.location.href = `?id=${tvShowId}`;
+                },
+                goToSeason(seasonNumber) {
+                    alert(`Navigating to Season ${seasonNumber}`);
+                    // Aquí puedes redirigir a una vista más detallada por temporada si lo deseas.
                 },
                 getPosterUrl(path) {
                     return `https://image.tmdb.org/t/p/w500${path}`;
@@ -212,9 +180,17 @@
                 },
                 getTrailerUrl(trailer) {
                     return `https://www.youtube.com/embed/${trailer.key}`;
+                },
+                toggleFavorite() {
+                    this.isFavorite = !this.isFavorite;
+                },
+                getTVShowIdFromURL() {
+                    const params = new URLSearchParams(window.location.search);
+                    return params.get('id') || '1399';  // Default to Game of Thrones
                 }
             },
             mounted() {
+                this.tvShowId = this.getTVShowIdFromURL();
                 this.getTVShowDetails();
                 this.getTVShowCast();
                 this.getTrailer();
