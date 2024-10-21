@@ -3,182 +3,146 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Movie Details</title>
+    <title>Movie Catalog</title>
+
     
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f4f4f4;
-        }
-
-        .movie-container {
-            width: 80%;
-            margin: auto;
-            background-color: white;
-            padding: 20px;
-            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
-        }
-
-        .movie-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .poster img {
-            width: 300px;
-        }
-
-        .details {
-            margin-left: 20px;
-        }
-
-        .trailer iframe {
-            width: 100%;
-            height: 400px;
-        }
-
-        .recommendations, .actor-cards {
-            display: flex;
-            flex-wrap: wrap;
-        }
-
-        .recommendation-item, .actor-card {
-            margin: 10px;
-            text-align: center;
-            cursor: pointer;
-        }
-
-        .recommendation-item img, .actor-card img {
-            width: 150px;
-        }
-
-        .star-rating {
-            direction: rtl;
-            font-size: 24px;
-            unicode-bidi: bidi-override;
-            display: inline-block;
-        }
-
-        .star-rating input {
-            display: none;
-        }
-
-        .star-rating label {
-            color: #ccc;
-            cursor: pointer;
-        }
-
-        .star-rating input:checked ~ label,
-        .star-rating label:hover,
-        .star-rating label:hover ~ label {
+        .star {
+            font-size: 1.5rem;
             color: gold;
-        }
-
-        .category-button {
             cursor: pointer;
-            background-color: #3498db;
-            color: white;
-            border: none;
-            padding: 5px 10px;
-            margin-right: 5px;
-            border-radius: 5px;
+        }
+        .star-grey {
+            color: lightgrey;
         }
     </style>
-
-    
-    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
 </head>
 <body>
-    <div id="app">
-        <div class="movie-container" v-if="movie">
-            <div class="movie-header">
-                <h1>{{ movie.title }}</h1>
-                <button @click="toggleFavorite">{{ isFavorite ? 'Unfavorite' : 'Favorite' }}</button>
-            </div>
-            <div class="movie-content">
-                <div class="poster">
-                    <img :src="getPosterUrl(movie.poster_path)" alt="Movie Poster">
+    <div id="app" class="container mt-5">
+        
+        <div v-if="!movieId" class="row">
+            <h1 class="text-center mb-4">Movies</h1>
+            <div v-for="movie in popularMovies" :key="movie.id" class="col-6 col-md-4 col-lg-3 text-center mb-3" 
+                 @click="goToMovie(movie.id)">
+                <img :src="getPosterUrl(movie.poster_path)" class="img-fluid rounded mb-2" 
+                     :alt="movie.title" @error="setPlaceholderImage($event)">
+                <h5>{{ movie.title }}</h5>
+                <p>Rating: {{ movie.vote_average.toFixed(1) }} / 10</p>
+                <div class="d-flex justify-content-center">
+                    <span v-for="star in 5" :key="star" class="star" :class="{'star-grey': movie.vote_average / 2 < star}">
+                        ★
+                    </span>
                 </div>
-                <div class="details">
-                    <p><strong>Rating:</strong></p>
-                    
-                    <div class="star-rating">
-                        <input type="radio" id="5-stars" value="5" v-model="userRating">
-                        <label for="5-stars">&#9733;</label>
-                        <input type="radio" id="4-stars" value="4" v-model="userRating">
-                        <label for="4-stars">&#9733;</label>
-                        <input type="radio" id="3-stars" value="3" v-model="userRating">
-                        <label for="3-stars">&#9733;</label>
-                        <input type="radio" id="2-stars" value="2" v-model="userRating">
-                        <label for="2-stars">&#9733;</label>
-                        <input type="radio" id="1-star" value="1" v-model="userRating">
-                        <label for="1-star">&#9733;</label>
-                    </div>
-                    <p><strong>Overview:</strong> {{ movie.overview }}</p>
-                    <p><strong>Release Date:</strong> {{ movie.release_date }}</p>
+            </div>
+        </div>
+
+        
+        <div v-else class="card p-4 shadow-sm">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h1>{{ movie.title }}</h1>
+                <button class="btn btn-outline-primary" @click="toggleFavorite">
+                    {{ isFavorite ? 'Unfavorite' : 'Favorite' }}
+                </button>
+            </div>
+
+            <div class="row">
+                <div class="col-md-4">
+                    <img :src="getPosterUrl(movie.poster_path)" class="img-fluid rounded" 
+                         :alt="movie.title" @error="setPlaceholderImage($event)">
+                </div>
+                <div class="col-md-8">
+                    <p><strong>Overview:</strong> {{ movie.overview || 'No description available.' }}</p>
+                    <p><strong>Release Date:</strong> {{ movie.release_date || 'N/A' }}</p>
                     <p><strong>Categories:</strong></p>
-                    
-                    <div>
-                        <button v-for="category in movie.genres" :key="category.id" class="category-button" @click="goToCategory(category.id)">
+                    <div class="mb-3">
+                        <button v-for="category in movie.genres" :key="category.id" 
+                                class="btn btn-primary me-2 mb-2" @click="goToCategory(category.id)">
                             {{ category.name }}
                         </button>
                     </div>
+
+                    <h3>Movie Rating</h3>
+                    <div class="d-flex align-items-center mb-3">
+                        <p class="mb-0 me-2">Average Rating: {{ movie.vote_average.toFixed(1) }} / 10</p>
+                        <div class="d-flex">
+                            <span v-for="star in 5" :key="star" class="star" :class="{'star-grey': movie.vote_average / 2 < star}">
+                                ★
+                            </span>
+                        </div>
+                    </div>
+
+                    <h3>Your Rating</h3>
+                    <div class="d-flex mb-4">
+                        <span v-for="star in 5" :key="star" class="star" 
+                              :class="{'star-grey': userRating < star}" @click="rateMovie(star)">
+                            ★
+                        </span>
+                    </div>
+
                     <h3>Reparto</h3>
-                    
-                    <div class="actor-cards">
-                        <div class="actor-card" v-for="actor in cast" :key="actor.cast_id" @click="goToActor(actor.id)">
-                            <img :src="getProfileUrl(actor.profile_path)" alt="Actor Image">
+                    <div class="row">
+                        <div v-for="actor in cast" :key="actor.cast_id" class="col-6 col-md-4 col-lg-3 text-center mb-3">
+                            <img :src="getProfileUrl(actor.profile_path)" class="img-fluid rounded mb-2" 
+                                 :alt="actor.name" @error="setPlaceholderImage($event)">
                             <p>{{ actor.name }}</p>
                             <p><em>{{ actor.character }}</em></p>
                         </div>
                     </div>
                 </div>
             </div>
-            <h3>Trailer</h3>
-            <div class="trailer">
-                <iframe :src="getTrailerUrl(trailer)" frameborder="0"></iframe>
+
+            <h3 class="mt-4">Trailer</h3>
+            <div v-if="trailer" class="ratio ratio-16x9 mb-4">
+                <iframe :src="getTrailerUrl(trailer)" frameborder="0" allowfullscreen></iframe>
             </div>
+            <p v-else>No trailer available.</p>
+
             <h3>Recomendaciones</h3>
-            
-            <div class="recommendations">
-                <div v-for="recommendation in recommendations" :key="recommendation.id" class="recommendation-item" @click="goToMovie(recommendation.id)">
+            <div class="row">
+                <div v-for="recommendation in recommendations" :key="recommendation.id" 
+                     class="col-6 col-md-4 col-lg-3 text-center mb-3" @click="goToMovie(recommendation.id)">
                     <h4>{{ recommendation.title }}</h4>
-                    <img :src="getPosterUrl(recommendation.poster_path)" alt="Recommendation Poster">
+                    <img :src="getPosterUrl(recommendation.poster_path)" class="img-fluid rounded mb-2" 
+                         :alt="recommendation.title" @error="setPlaceholderImage($event)">
                 </div>
             </div>
         </div>
-        <div v-else>
-            <p>Loading movie details...</p>
-        </div>
     </div>
 
-    
     <script>
         new Vue({
             el: '#app',
             data: {
-                apiKey: 'cf099e1443bc9a2df637136e1cb405d8',  
-                movieId: '500', 
+                apiKey: 'cf099e1443bc9a2df637136e1cb405d8',
+                movieId: null,
                 movie: null,
+                popularMovies: [],  
                 cast: [],
-                userRating: null,
                 trailer: null,
                 recommendations: [],
                 isFavorite: false,
+                userRating: 0,  
             },
             methods: {
-                
+                getPopularMovies() {
+                    fetch(`https://api.themoviedb.org/3/movie/popular?api_key=${this.apiKey}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            this.popularMovies = data.results;
+                        })
+                        .catch(error => console.error('Error fetching popular movies:', error));
+                },
                 getMovieDetails() {
                     fetch(`https://api.themoviedb.org/3/movie/${this.movieId}?api_key=${this.apiKey}`)
                         .then(response => response.json())
                         .then(data => {
                             this.movie = data;
+                            this.userRating = localStorage.getItem(`rating_${this.movieId}`) || 0;
                         });
                 },
-                
                 getMovieCast() {
                     fetch(`https://api.themoviedb.org/3/movie/${this.movieId}/credits?api_key=${this.apiKey}`)
                         .then(response => response.json())
@@ -186,7 +150,6 @@
                             this.cast = data.cast;
                         });
                 },
-                
                 getTrailer() {
                     fetch(`https://api.themoviedb.org/3/movie/${this.movieId}/videos?api_key=${this.apiKey}`)
                         .then(response => response.json())
@@ -194,7 +157,6 @@
                             this.trailer = data.results.find(video => video.type === 'Trailer');
                         });
                 },
-                
                 getRecommendations() {
                     fetch(`https://api.themoviedb.org/3/movie/${this.movieId}/recommendations?api_key=${this.apiKey}`)
                         .then(response => response.json())
@@ -202,43 +164,47 @@
                             this.recommendations = data.results;
                         });
                 },
-                
-                toggleFavorite() {
-                    this.isFavorite = !this.isFavorite;
-                },
-                
-                goToCategory(categoryId) {
-                    window.location.href = `/category.html?id=${categoryId}`;
-                },
-                
-                goToActor(actorId) {
-                    window.location.href = `/actor.html?id=${actorId}`;
-                },
-                
                 goToMovie(movieId) {
-                    window.location.href = `/movie.html?id=${movieId}`;
+                    window.location.href = `?id=${movieId}`;
                 },
-                
                 getPosterUrl(path) {
-                    return `https://image.tmdb.org/t/p/w500${path}`;
+                    return path ? `https://image.tmdb.org/t/p/w500${path}` : 'https://via.placeholder.com/300x450';
                 },
-                
                 getProfileUrl(path) {
                     return path ? `https://image.tmdb.org/t/p/w500${path}` : 'https://via.placeholder.com/150';
                 },
-                
                 getTrailerUrl(trailer) {
                     return `https://www.youtube.com/embed/${trailer.key}`;
+                },
+                setPlaceholderImage(event) {
+                    event.target.src = 'https://via.placeholder.com/300x450';
+                },
+                toggleFavorite() {
+                    this.isFavorite = !this.isFavorite;
+                },
+                rateMovie(star) {
+                    this.userRating = star;
+                    localStorage.setItem(`rating_${this.movieId}`, star);
+                },
+                getMovieIdFromURL() {
+                    const params = new URLSearchParams(window.location.search);
+                    return params.get('id');
                 }
             },
             mounted() {
-                this.getMovieDetails();
-                this.getMovieCast();
-                this.getTrailer();
-                this.getRecommendations();
+                this.movieId = this.getMovieIdFromURL();
+                if (this.movieId) {
+                    this.getMovieDetails();
+                    this.getMovieCast();
+                    this.getTrailer();
+                    this.getRecommendations();
+                } else {
+                    this.getPopularMovies();
+                }
             }
         });
     </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
-
