@@ -35,11 +35,13 @@
         });
 
         async function obtenerGeneros() {
-            const url = `https://api.themoviedb.org/3/genre/movie/list?api_key=${apiKey}&language=es-ES`;
             try {
-                const res = await fetch(url);
-                const data = await res.json();
-                generos = data.genres;
+                const responsePeliculas = await fetch(`https://api.themoviedb.org/3/genre/movie/list?api_key=${apiKey}&language=es-ES`);
+                const responseSeries = await fetch(`https://api.themoviedb.org/3/genre/tv/list?api_key=${apiKey}&language=es-ES`);
+                const dataPeliculas = await responsePeliculas.json();
+                const dataSeries = await responseSeries.json();
+
+                generos = [...dataPeliculas.genres, ...dataSeries.genres];
                 generarBotones(generos);
             } catch (error) {
                 console.error('Error al obtener géneros:', error);
@@ -100,10 +102,7 @@
             contSeries.innerHTML = '';
 
             series.forEach(s => {
-                let etiquetas = '';
-                if (s.genre_ids) {
-                    etiquetas = s.genre_ids.map(id => obtenerNombreGenero(id)).join(', ');
-                }
+                let etiquetas = s.genre_ids.map(id => obtenerNombreGenero(id)).join(', ');
 
                 const tarjeta = document.createElement('div');
                 tarjeta.className = 'tarjeta';
@@ -124,10 +123,7 @@
             contPeliculas.innerHTML = '';
 
             peliculas.forEach(p => {
-                let etiquetas = '';
-                if (p.genre_ids) {
-                    etiquetas = p.genre_ids.map(id => obtenerNombreGenero(id)).join(', ');
-                }
+                let etiquetas = p.genre_ids.map(id => obtenerNombreGenero(id)).join(', ');
 
                 const tarjeta = document.createElement('div');
                 tarjeta.className = 'tarjeta';
@@ -144,29 +140,8 @@
         }
 
         function obtenerNombreGenero(id) {
-            const generos = {
-                28: 'Acción',
-                12: 'Aventura',
-                16: 'Animación',
-                35: 'Comedia',
-                80: 'Crimen',
-                99: 'Documental',
-                18: 'Drama',
-                10751: 'Familiar',
-                14: 'Fantasía',
-                36: 'Historia',
-                27: 'Terror',
-                10402: 'Música',
-                9648: 'Misterio',
-                10749: 'Romance',
-                878: 'Ciencia ficción',
-                10770: 'Película de TV',
-                53: 'Suspense',
-                10752: 'Bélica',
-                37: 'Western'
-            };
-
-            return generos[id] || 'Desconocido';
+            const generoEncontrado = generos.find(g => g.id === id);
+            return generoEncontrado ? generoEncontrado.name : 'Desconocido';
         }
 
         function filtrarPorGenero(event) {
@@ -189,7 +164,7 @@
                 const backgroundImage = `https://image.tmdb.org/t/p/original${movie.backdrop_path}`;
                 document.body.style.backgroundImage = `url(${backgroundImage})`;
             } catch (error) {
-                console.error("Error, no se encontro informacion:", error);
+                console.error("Error, no se encontró información:", error);
             }
         }
     </script>

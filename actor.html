@@ -20,6 +20,7 @@
   <script>
     const apiKey = 'cf099e1443bc9a2df637136e1cb405d8';
     const IMG_BASE_URL = 'https://image.tmdb.org/t/p/original';
+    let generos = {};
 
     function obtenerId() {
       const params = new URLSearchParams(window.location.search);
@@ -28,8 +29,9 @@
 
     let idArtista = obtenerId();
 
-    document.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener('DOMContentLoaded', async () => {
       if (idArtista) {
+        await obtenerGeneros(); // Obtener géneros al cargar
         obtenerArtista(idArtista);
         obtenerFilmografia(idArtista);
         obtenerBgAleatorio();
@@ -37,6 +39,27 @@
         console.error('ID de actor no proporcionado en la URL');
       }
     });
+
+    async function obtenerGeneros() {
+      try {
+        const responsePeliculas = await fetch(`https://api.themoviedb.org/3/genre/movie/list?api_key=${apiKey}&language=es-ES`);
+        const dataPeliculas = await responsePeliculas.json();
+        
+        const responseSeries = await fetch(`https://api.themoviedb.org/3/genre/tv/list?api_key=${apiKey}&language=es-ES`);
+        const dataSeries = await responseSeries.json();
+
+        // Combinar géneros
+        dataPeliculas.genres.forEach(genre => {
+          generos[genre.id] = genre.name;
+        });
+        dataSeries.genres.forEach(genre => {
+          generos[genre.id] = genre.name;
+        });
+
+      } catch (error) {
+        console.error('Error al obtener géneros:', error);
+      }
+    }
 
     async function obtenerBgAleatorio() {
       try {
@@ -96,7 +119,7 @@
       let htmlFilmografia = '';
 
       series.forEach(serie => {
-        let etiquetasGenero = serie.genre_ids ? serie.genre_ids.map(id => obtenerGenero(id)).join(', ') : '';
+        let etiquetasGenero = serie.genre_ids ? serie.genre_ids.map(id => generos[id]).filter(name => name).join(', ') : '';
         htmlFilmografia += `
           <div class="tarjeta" onclick="location.href='Series.html?id=${serie.id}'">
             <img src="https://image.tmdb.org/t/p/w500${serie.poster_path}" alt="${serie.name}">
@@ -107,7 +130,7 @@
       });
 
       peliculas.forEach(pelicula => {
-        let etiquetasGenero = pelicula.genre_ids ? pelicula.genre_ids.map(id => obtenerGenero(id)).join(', ') : '';
+        let etiquetasGenero = pelicula.genre_ids ? pelicula.genre_ids.map(id => generos[id]).filter(name => name).join(', ') : '';
         htmlFilmografia += `
           <div class="tarjeta" onclick="location.href='movie.html?id=${pelicula.id}'">
             <img src="https://image.tmdb.org/t/p/w500${pelicula.poster_path}" alt="${pelicula.title}">
@@ -118,32 +141,6 @@
       });
 
       document.getElementById('filmografia').innerHTML = htmlFilmografia;
-    }
-
-    function obtenerGenero(id) {
-      const generos = {
-        28: 'Acción',
-        12: 'Aventura',
-        16: 'Animación',
-        35: 'Comedia',
-        80: 'Crimen',
-        99: 'Documental',
-        18: 'Drama',
-        10751: 'Familiar',
-        14: 'Fantasía',
-        36: 'Historia',
-        27: 'Terror',
-        10402: 'Música',
-        9648: 'Misterio',
-        10749: 'Romance',
-        878: 'Ciencia ficción',
-        10770: 'Película de TV',
-        53: 'Suspense',
-        10752: 'Bélica',
-        37: 'Western'
-      };
-
-      return generos[id] || 'Desconocido';
     }
   </script>
 </body>
