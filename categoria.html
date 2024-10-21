@@ -105,13 +105,17 @@
                     etiquetas = s.genre_ids.map(id => obtenerNombreGenero(id)).join(', ');
                 }
 
-                contSeries.innerHTML += `
-                    <div class="tarjeta">
-                        <img src="https://image.tmdb.org/t/p/w500${s.poster_path}" alt="${s.name}">
-                        <h3>${s.name}</h3>
-                        <div class="contenedor-genero">${etiquetas}</div>
-                    </div>
+                const tarjeta = document.createElement('div');
+                tarjeta.className = 'tarjeta';
+                tarjeta.innerHTML = `
+                    <img src="https://image.tmdb.org/t/p/w500${s.poster_path}" alt="${s.name}">
+                    <h3>${s.name}</h3>
+                    <div class="contenedor-genero">${etiquetas}</div>
                 `;
+                tarjeta.addEventListener('click', () => {
+                    window.location.href = `Series.html?id=${s.id}`;
+                });
+                contSeries.appendChild(tarjeta);
             });
         }
 
@@ -125,13 +129,17 @@
                     etiquetas = p.genre_ids.map(id => obtenerNombreGenero(id)).join(', ');
                 }
 
-                contPeliculas.innerHTML += `
-                    <div class="tarjeta">
-                        <img src="https://image.tmdb.org/t/p/w500${p.poster_path}" alt="${p.title}">
-                        <h3>${p.title}</h3>
-                        <div class="contenedor-genero">${etiquetas}</div>
-                    </div>
+                const tarjeta = document.createElement('div');
+                tarjeta.className = 'tarjeta';
+                tarjeta.innerHTML = `
+                    <img src="https://image.tmdb.org/t/p/w500${p.poster_path}" alt="${p.title}">
+                    <h3>${p.title}</h3>
+                    <div class="contenedor-genero">${etiquetas}</div>
                 `;
+                tarjeta.addEventListener('click', () => {
+                    window.location.href = `movie.html?id=${p.id}`;
+                });
+                contPeliculas.appendChild(tarjeta);
             });
         }
 
@@ -181,7 +189,7 @@
                 const backgroundImage = `https://image.tmdb.org/t/p/original${movie.backdrop_path}`;
                 document.body.style.backgroundImage = `url(${backgroundImage})`;
             } catch (error) {
-                console.error("Error fetching the movie data:", error);
+                console.error("Error, no se encontro informacion:", error);
             }
         }
     </script>
