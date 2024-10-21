@@ -19,8 +19,22 @@
   <script>
 
     const apiKey = 'cf099e1443bc9a2df637136e1cb405d8';
-    let idArtista = 123;
     
+    function obtenerIdArtista() {
+      const params = new URLSearchParams(window.location.search);
+      return params.get('id');
+    }
+
+    let idArtista = obtenerIdArtista();
+
+    document.addEventListener('DOMContentLoaded', () => {
+      if (idArtista) {
+        obtenerDetallesArtista(idArtista);
+        obtenerFilmografia(idArtista);
+      } else {
+        console.error('ID de actor no proporcionado en la URL');
+      }
+    });
     document.addEventListener('DOMContentLoaded', () => {
     obtenerDetallesArtista(idArtista);
     obtenerFilmografia(idArtista);
